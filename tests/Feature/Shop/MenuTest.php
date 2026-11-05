@@ -46,7 +46,7 @@ test('an owner can add a dish', function () {
 });
 
 test('new dishes go to the end of the menu', function () {
-    Item::factory()->for($this->shop)->create(['sort_order' => 5]);
+    Item::factory()->for($this->shop)->create(['name' => 'Jhol Momo', 'sort_order' => 5]);
 
     menuPage($this->owner)->set('name', 'Samosa')->call('save');
 
