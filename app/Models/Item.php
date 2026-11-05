@@ -6,9 +6,11 @@ use Database\Factories\ItemFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Scope;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
 
@@ -27,6 +29,7 @@ use Illuminate\Support\Str;
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
  * @property-read Shop $shop
+ * @property-read Collection<int, DailyStatus> $dailyStatuses
  */
 #[Fillable([
     'name', 'description', 'default_price', 'is_veg',
@@ -75,6 +78,14 @@ class Item extends Model
     public function shop(): BelongsTo
     {
         return $this->belongsTo(Shop::class);
+    }
+
+    /**
+     * @return HasMany<DailyStatus, $this>
+     */
+    public function dailyStatuses(): HasMany
+    {
+        return $this->hasMany(DailyStatus::class);
     }
 
     /**
