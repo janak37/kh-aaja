@@ -2,7 +2,10 @@
 
 namespace App\Services;
 
+use App\Enums\DeclineReason;
 use App\Enums\ItemStatus;
+use App\Enums\ReservationStatus;
+use App\Models\BoardUpdate;
 use App\Models\DailyStatus;
 use App\Models\Item;
 use App\Models\Shop;
@@ -17,6 +20,14 @@ use Illuminate\Database\Eloquent\Collection;
 class ShopBoard
 {
     public const MAX_SPECIALS = 3;
+
+    /** Reliable board: updated on at least 10 of the last 14 days… */
+    public const RELIABLE_WINDOW_DAYS = 14;
+
+    public const RELIABLE_MIN_DAYS = 10;
+
+    /** …and fewer than 2 reservations declined as sold out in that window. */
+    public const RELIABLE_MAX_SOLD_OUT_DECLINES = 2;
 
     public function __construct(private readonly Shop $shop) {}
 
@@ -66,6 +77,83 @@ class ShopBoard
     {
         return $this->statuses()->where('is_special', true)->count();
     }
+
+    // ---------------------------------------------------------------
+    // Streak and reliable-board badge
+    // ---------------------------------------------------------------
+
+    /**
+     * Consecutive days with a board update, ending today or yesterday.
+     * A missed day resets the streak to 0.
+     */
+    public function streak(): int
+    {
+        $dates = $this->shop->boardUpdates()
+            ->where('board_date', '<=', $this->date())
+            ->orderByDesc('board_date')
+            ->limit(400)
+            ->get(['board_date'])
+            ->map(fn (BoardUpdate $update) => $update->board_date->toDateString())
+            ->all();
+
+        $day = now($this->shop->timezone)->startOfDay();
+
+        // Not updated yet today? The streak can still continue from yesterday.
+        if (($dates[0] ?? null) !== $day->toDateString()) {
+            $day = $day->subDay();
+        }
+
+        $streak = 0;
+
+        foreach ($dates as $date) {
+            if ($date !== $day->toDateString()) {
+                break;
+            }
+
+            $streak++;
+            $day = $day->subDay();
+        }
+
+        return $streak;
+    }
+
+    /**
+     * On how many of the last 14 days (including today) the board was updated.
+     */
+    public function updatedDaysInWindow(): int
+    {
+        [$from, $to] = $this->window();
+
+        return $this->shop->boardUpdates()
+            ->where('board_date', '>=', $from)
+            ->where('board_date', '<=', $to)
+            ->count();
+    }
+
+    /**
+     * Reservations declined as "sold out" in the last 14 days.
+     */
+    public function soldOutDeclinesInWindow(): int
+    {
+        [$from, $to] = $this->window();
+
+        return $this->shop->reservations()
+            ->where('status', ReservationStatus::Declined)
+            ->where('decline_reason', DeclineReason::SoldOut)
+            ->where('board_date', '>=', $from)
+            ->where('board_date', '<=', $to)
+            ->count();
+    }
+
+    public function isReliable(): bool
+    {
+        return $this->updatedDaysInWindow() >= self::RELIABLE_MIN_DAYS
+            && $this->soldOutDeclinesInWindow() < self::RELIABLE_MAX_SOLD_OUT_DECLINES;
+    }
+
+    // ---------------------------------------------------------------
+    // Changing today's board
+    // ---------------------------------------------------------------
 
     public function setStatus(Item $item, ItemStatus $status): DailyStatus
     {
@@ -134,6 +222,21 @@ class ShopBoard
         }
 
         return $items->count();
+    }
+
+    /**
+     * The 14-day window ending today, as [from, to] date strings.
+     *
+     * @return array{0: string, 1: string}
+     */
+    private function window(): array
+    {
+        $today = now($this->shop->timezone);
+
+        return [
+            $today->subDays(self::RELIABLE_WINDOW_DAYS - 1)->toDateString(),
+            $this->date(),
+        ];
     }
 
     /**

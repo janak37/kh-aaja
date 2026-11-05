@@ -56,6 +56,18 @@ new #[Layout('layouts::public')] class extends Component {
         return $this->board()->lastUpdatedAt()?->diffForHumans();
     }
 
+    #[Computed]
+    public function streak(): int
+    {
+        return $this->board()->streak();
+    }
+
+    #[Computed]
+    public function isReliable(): bool
+    {
+        return $this->board()->isReliable();
+    }
+
     private function board(): ShopBoard
     {
         return new ShopBoard($this->shop);
@@ -75,6 +87,10 @@ new #[Layout('layouts::public')] class extends Component {
         </flux:text>
 
         <div class="mt-3 flex flex-wrap items-center gap-2">
+            @if ($this->isReliable)
+                <flux:badge color="green" size="sm" icon="check-badge">{{ __('Reliable board') }}</flux:badge>
+            @endif
+
             @if ($shop->isOpenNow() === true)
                 <flux:badge color="green" size="sm">{{ __('Open now') }}</flux:badge>
             @elseif ($shop->isOpenNow() === false)
@@ -82,7 +98,12 @@ new #[Layout('layouts::public')] class extends Component {
             @endif
 
             @if ($this->updatedAgo)
-                <flux:text size="sm">{{ __('Board updated :ago', ['ago' => $this->updatedAgo]) }}</flux:text>
+                <flux:text size="sm">
+                    {{ __('Board updated :ago', ['ago' => $this->updatedAgo]) }}
+                    @if ($this->streak >= 3)
+                        · {{ __(':count days in a row', ['count' => $this->streak]) }}
+                    @endif
+                </flux:text>
             @else
                 <flux:badge color="amber" size="sm">{{ __('Not updated today') }}</flux:badge>
             @endif

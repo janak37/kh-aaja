@@ -57,6 +57,24 @@ new #[Title('Today')] class extends Component {
         return $this->board()->lastUpdatedAt()?->timezone($this->shop->timezone)->format('g:i a');
     }
 
+    #[Computed]
+    public function streak(): int
+    {
+        return $this->shop === null ? 0 : $this->board()->streak();
+    }
+
+    #[Computed]
+    public function updatedDays(): int
+    {
+        return $this->shop === null ? 0 : $this->board()->updatedDaysInWindow();
+    }
+
+    #[Computed]
+    public function isReliable(): bool
+    {
+        return $this->shop !== null && $this->board()->isReliable();
+    }
+
     public function setStatus(int $itemId, string $status): void
     {
         $case = ItemStatus::tryFrom($status);
@@ -134,9 +152,13 @@ new #[Title('Today')] class extends Component {
         return $shop->items()->active()->findOrFail($id);
     }
 
+    /**
+     * Forget cached values so the page shows the change straight away
+     * (the first tap of the day turns "4-day streak" into "5-day streak").
+     */
     private function refreshBoard(): void
     {
-        unset($this->statuses, $this->lastUpdated);
+        unset($this->statuses, $this->lastUpdated, $this->streak, $this->updatedDays, $this->isReliable);
     }
 }; ?>
 
@@ -161,6 +183,24 @@ new #[Title('Today')] class extends Component {
             <flux:button size="sm" icon="document-duplicate" wire:click="copyYesterday">{{ __('Copy yesterday') }}</flux:button>
             <flux:button size="sm" icon="check-circle" wire:click="resetAll">{{ __('All available') }}</flux:button>
         </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+        <flux:badge :color="$this->streak > 0 ? 'orange' : 'zinc'" icon="fire">
+            {{ __(':count-day streak', ['count' => $this->streak]) }}
+        </flux:badge>
+
+        @if ($this->isReliable)
+            <flux:badge color="green" icon="check-badge">{{ __('Reliable board') }}</flux:badge>
+        @else
+            <flux:text size="sm">
+                {{ __('Updated :days of the last :window days. Reach :min for the Reliable board badge.', [
+                    'days' => $this->updatedDays,
+                    'window' => ShopBoard::RELIABLE_WINDOW_DAYS,
+                    'min' => ShopBoard::RELIABLE_MIN_DAYS,
+                ]) }}
+            </flux:text>
+        @endif
     </div>
 
     <flux:text>
