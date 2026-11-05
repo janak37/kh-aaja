@@ -88,3 +88,16 @@ test('invalid phone, category and area are rejected', function () {
 
     expect($this->owner->shop()->exists())->toBeFalse();
 });
+
+test('the sidebar shows My shop only to shop owners', function () {
+    $this->actingAs($this->owner)
+        ->get(route('dashboard'))
+        ->assertSee(route('shop.edit'));
+
+    $admin = User::factory()->create();
+    $admin->assignRole(UserRole::Admin);
+
+    $this->actingAs($admin)
+        ->get(route('dashboard'))
+        ->assertDontSee(route('shop.edit'));
+});
