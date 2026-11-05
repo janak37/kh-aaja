@@ -108,6 +108,49 @@ class Shop extends Model
     }
 
     /**
+     * "Momo", "Khaja set"… from config/khaaja.php.
+     */
+    public function categoryLabel(): string
+    {
+        return __(config('khaaja.categories.'.$this->category, $this->category));
+    }
+
+    /**
+     * True/false in the shop's own timezone; null when hours are not set.
+     * Handles shops that close after midnight (e.g. 18:00–02:00).
+     */
+    public function isOpenNow(): ?bool
+    {
+        if ($this->opens_at === null || $this->closes_at === null) {
+            return null;
+        }
+
+        $now = now($this->timezone)->format('H:i');
+        $open = substr($this->opens_at, 0, 5);
+        $close = substr($this->closes_at, 0, 5);
+
+        return $open <= $close
+            ? $now >= $open && $now < $close
+            : $now >= $open || $now < $close;
+    }
+
+    /**
+     * wa.me link with a friendly message typed in, or null without a WhatsApp number.
+     */
+    public function whatsappUrl(?string $dish = null): ?string
+    {
+        if ($this->whatsapp_number === null) {
+            return null;
+        }
+
+        $text = $dish === null
+            ? __('Namaste! I found you on Kh-aaja.')
+            : __('Namaste! Is :dish available today? (via Kh-aaja)', ['dish' => $dish]);
+
+        return 'https://wa.me/977'.$this->whatsapp_number.'?text='.rawurlencode($text);
+    }
+
+    /**
      * Public URLs use the slug: /s/{slug}
      */
     public function getRouteKeyName(): string
