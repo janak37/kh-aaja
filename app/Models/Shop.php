@@ -36,6 +36,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read User $owner
  * @property-read Collection<int, Item> $items
+ * @property-read Collection<int, BoardUpdate> $boardUpdates
  */
 #[Fillable([
     'name', 'slug', 'description', 'category', 'area',
@@ -78,6 +79,16 @@ class Shop extends Model
     public function items(): HasMany
     {
         return $this->hasMany(Item::class)->orderBy('sort_order');
+    }
+
+    /**
+     * Days on which this shop updated its board (drives the streak).
+     *
+     * @return HasMany<BoardUpdate, $this>
+     */
+    public function boardUpdates(): HasMany
+    {
+        return $this->hasMany(BoardUpdate::class);
     }
 
     public function isSuspended(): bool
