@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 /**
@@ -86,6 +87,14 @@ class Item extends Model
     public function dailyStatuses(): HasMany
     {
         return $this->hasMany(DailyStatus::class);
+    }
+
+    /**
+     * Public URL of the dish photo, or null when there is none.
+     */
+    public function photoUrl(): ?string
+    {
+        return $this->photo_path === null ? null : Storage::disk('public')->url($this->photo_path);
     }
 
     /**
