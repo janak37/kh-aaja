@@ -17,6 +17,10 @@
                     </flux:sidebar.item>
 
                     @role('shop_owner')
+                        <flux:sidebar.item icon="clipboard-document-check" :href="route('shop.today')" :current="request()->routeIs('shop.today')" wire:navigate>
+                            {{ __('Today') }}
+                        </flux:sidebar.item>
+
                         <flux:sidebar.item icon="building-storefront" :href="route('shop.edit')" :current="request()->routeIs('shop.edit')" wire:navigate>
                             {{ __('My shop') }}
                         </flux:sidebar.item>
