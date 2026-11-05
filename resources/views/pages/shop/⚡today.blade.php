@@ -154,7 +154,10 @@ new #[Title('Today')] class extends Component {
             </flux:subheading>
         </div>
 
-        <div class="flex gap-2">
+        <div class="flex flex-wrap gap-2">
+            @if ($this->shop)
+                <flux:button size="sm" icon="eye" :href="route('board.show', $this->shop)" target="_blank">{{ __('View my board') }}</flux:button>
+            @endif
             <flux:button size="sm" icon="document-duplicate" wire:click="copyYesterday">{{ __('Copy yesterday') }}</flux:button>
             <flux:button size="sm" icon="check-circle" wire:click="resetAll">{{ __('All available') }}</flux:button>
         </div>
