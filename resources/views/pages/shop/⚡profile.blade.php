@@ -79,9 +79,9 @@ new #[Title('My shop')] class extends Component {
         if ($shop === null) {
             $data['slug'] = $this->uniqueSlug($data['name']);
             $user->shop()->create($data);
-            $this->hasShop = true;
 
-            Flux::toast(variant: 'success', text: __('Your shop is ready.'));
+            Flux::toast(variant: 'success', text: __('Your shop is ready. Now add your dishes.'));
+            $this->redirectRoute('shop.menu', navigate: true);
 
             return;
         }

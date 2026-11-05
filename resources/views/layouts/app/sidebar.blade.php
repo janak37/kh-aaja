@@ -20,6 +20,10 @@
                         <flux:sidebar.item icon="building-storefront" :href="route('shop.edit')" :current="request()->routeIs('shop.edit')" wire:navigate>
                             {{ __('My shop') }}
                         </flux:sidebar.item>
+
+                        <flux:sidebar.item icon="book-open" :href="route('shop.menu')" :current="request()->routeIs('shop.menu')" wire:navigate>
+                            {{ __('Menu') }}
+                        </flux:sidebar.item>
                     @endrole
                 </flux:sidebar.group>
             </flux:sidebar.nav>
