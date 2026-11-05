@@ -37,6 +37,7 @@ use Illuminate\Support\Carbon;
  * @property-read User $owner
  * @property-read Collection<int, Item> $items
  * @property-read Collection<int, BoardUpdate> $boardUpdates
+ * @property-read Collection<int, Reservation> $reservations
  */
 #[Fillable([
     'name', 'slug', 'description', 'category', 'area',
@@ -89,6 +90,16 @@ class Shop extends Model
     public function boardUpdates(): HasMany
     {
         return $this->hasMany(BoardUpdate::class);
+    }
+
+    /**
+     * Customer reservations for this shop's items.
+     *
+     * @return HasMany<Reservation, $this>
+     */
+    public function reservations(): HasMany
+    {
+        return $this->hasMany(Reservation::class);
     }
 
     public function isSuspended(): bool
