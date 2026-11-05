@@ -28,6 +28,10 @@
                         <flux:sidebar.item icon="book-open" :href="route('shop.menu')" :current="request()->routeIs('shop.menu')" wire:navigate>
                             {{ __('Menu') }}
                         </flux:sidebar.item>
+
+                        <flux:sidebar.item icon="qr-code" :href="route('shop.qr')" :current="request()->routeIs('shop.qr')" wire:navigate>
+                            {{ __('QR code') }}
+                        </flux:sidebar.item>
                     @endrole
                 </flux:sidebar.group>
             </flux:sidebar.nav>
