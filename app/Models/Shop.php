@@ -4,9 +4,11 @@ namespace App\Models;
 
 use Database\Factories\ShopFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 
 /**
@@ -32,6 +34,8 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $score_updated_at
  * @property Carbon|null $created_at
  * @property Carbon|null $updated_at
+ * @property-read User $owner
+ * @property-read Collection<int, Item> $items
  */
 #[Fillable([
     'name', 'slug', 'description', 'category', 'area',
@@ -64,6 +68,16 @@ class Shop extends Model
     public function owner(): BelongsTo
     {
         return $this->belongsTo(User::class, 'user_id');
+    }
+
+    /**
+     * The shop's menu, in the owner's chosen order.
+     *
+     * @return HasMany<Item, $this>
+     */
+    public function items(): HasMany
+    {
+        return $this->hasMany(Item::class)->orderBy('sort_order');
     }
 
     public function isSuspended(): bool
