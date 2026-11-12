@@ -33,6 +33,12 @@
                             {{ __('QR code') }}
                         </flux:sidebar.item>
                     @endrole
+
+                    @role('admin')
+                        <flux:sidebar.item icon="building-office-2" :href="route('admin.shops')" :current="request()->routeIs('admin.*')" wire:navigate>
+                            {{ __('Shops') }}
+                        </flux:sidebar.item>
+                    @endrole
                 </flux:sidebar.group>
             </flux:sidebar.nav>
 
