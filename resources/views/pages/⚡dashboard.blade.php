@@ -107,6 +107,16 @@ new #[Title('Dashboard')] class extends Component {
         </div>
     @elseif ($this->shop)
         @php($s = $this->summary)
+        
+        @if ($this->shop->isSuspended())
+            <div class="flex gap-3 rounded-xl border border-red-300 bg-red-50 p-4 text-red-800 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300">
+                <flux:icon.exclamation-triangle class="size-5 shrink-0" />
+                <div>
+                    <div class="font-medium">{{ __('Your shop is suspended') }}</div>
+                    <div class="text-sm">{{ __('Customers cannot see your board right now. Please contact the Kh-aaja team.') }}</div>
+                </div>
+            </div>
+        @endif
 
         {{-- Greeting --}}
         <div class="flex flex-wrap items-end justify-between gap-4">
@@ -232,9 +242,17 @@ new #[Title('Dashboard')] class extends Component {
         </div>
     @else
         {{-- Admin and anyone else --}}
-        <div class="space-y-2">
-            <flux:heading size="xl" level="1">{{ __('Namaste, :name', ['name' => $this->firstName]) }}</flux:heading>
-            <flux:text>{{ __('Welcome to Kh-aaja.') }}</flux:text>
+        <div class="space-y-4">
+            <div class="space-y-2">
+                <flux:heading size="xl" level="1">{{ __('Namaste, :name', ['name' => $this->firstName]) }}</flux:heading>
+                <flux:text>{{ __('Welcome to Kh-aaja.') }}</flux:text>
+            </div>
+
+            @role('admin')
+                <flux:button variant="primary" icon="building-office-2" :href="route('admin.shops')" wire:navigate>
+                    {{ __('Manage shops') }}
+                </flux:button>
+            @endrole
         </div>
     @endif
 </section>
