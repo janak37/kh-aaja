@@ -3,7 +3,7 @@
 use App\Http\Controllers\LocaleController;
 use Illuminate\Support\Facades\Route;
 
-Route::view('/', 'welcome')->name('home');
+Route::livewire('/', 'pages::home')->name('home');
 
 // Public shop board: no login needed
 Route::livewire('s/{shop}', 'pages::board.show')->name('board.show');
