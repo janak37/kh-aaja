@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\ReservationStatus;
 use App\Enums\ItemStatus;
 use App\Enums\UserRole;
 use App\Models\Shop;
@@ -61,6 +62,10 @@ new #[Title('Dashboard')] class extends Component {
             'streak' => $board->streak(),
             'updatedDays' => $board->updatedDaysInWindow(),
             'reliable' => $board->isReliable(),
+            'waiting' => $shop->reservations()
+                ->where('status', ReservationStatus::Pending)
+                ->where('board_date', $board->date())
+                ->count(),
         ];
     }
 
@@ -95,7 +100,7 @@ new #[Title('Dashboard')] class extends Component {
     }
 }; ?>
 
-<section class="w-full max-w-4xl space-y-6">
+<section wire:poll.20s.visible class="w-full max-w-4xl space-y-6">
     @if ($this->isOwner && $this->shop === null)
         {{-- New owner: one clear next step --}}
         <div class="space-y-4 rounded-xl border border-zinc-200 p-6 dark:border-zinc-700">
@@ -128,6 +133,19 @@ new #[Title('Dashboard')] class extends Component {
                 {{ __('View my board') }}
             </flux:button>
         </div>
+
+        @if ($s['waiting'] > 0)
+            <a href="{{ route('shop.reservations') }}" wire:navigate class="flex items-center justify-between gap-4 rounded-xl border border-amber-400 bg-amber-50 p-4 text-amber-900 dark:bg-amber-500/10 dark:text-amber-200">
+                <div class="flex items-center gap-3">
+                    <flux:icon.inbox class="size-6" />
+                    <div>
+                        <div class="font-semibold">{{ __('Reservations waiting') }}</div>
+                        <div class="text-sm">{{ trans_choice(':count waiting|:count waiting', $s['waiting']) }}</div>
+                    </div>
+                </div>
+                <span class="text-sm font-semibold underline">{{ __('Open reservations') }}</span>
+            </a>
+        @endif
 
         <div class="grid gap-4 md:grid-cols-3">
             {{-- Today's board --}}
