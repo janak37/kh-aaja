@@ -184,5 +184,21 @@
     "Date": "मिति",
     "Name": "नाम",
     "Note": "नोट",
-    "Save this page to check your reservation later.": "पछि हेर्न यो पेज सेभ गर्नुहोस्।"
+    "Save this page to check your reservation later.": "पछि हेर्न यो पेज सेभ गर्नुहोस्।",
+    "Reservations": "बुकिङहरू",
+    "Confirm or decline new reservations quickly. Customers see your answer straight away.": "नयाँ बुकिङ छिटो स्वीकार वा अस्वीकार गर्नुहोस्। ग्राहकले तपाईंको जवाफ तुरुन्तै देख्छन्।",
+    "Show the last 7 days": "पछिल्लो ७ दिन देखाउनुहोस्",
+    "New": "नयाँ",
+    "Confirm": "स्वीकार गर्नुहोस्",
+    "Decline": "अस्वीकार गर्नुहोस्",
+    "Mark collected": "लगियो भनी चिन्ह लगाउनुहोस्",
+    "Reservation confirmed.": "बुकिङ स्वीकार गरियो।",
+    "Reservation declined.": "बुकिङ अस्वीकार गरियो।",
+    "Marked as collected.": "लगियो भनी चिन्ह लगाइयो।",
+    "This reservation can no longer be changed.": "यो बुकिङ अब परिवर्तन गर्न मिल्दैन।",
+    "No reservations today.": "आज कुनै बुकिङ छैन।",
+    ":qty × :dish": ":qty × :dish",
+    "Reservations waiting": "कुर्दै गरेका बुकिङ",
+    ":count waiting|:count waiting": ":count वटा कुर्दै|:count वटा कुर्दै",
+    "Open reservations": "बुकिङहरू खोल्नुहोस्"
 }

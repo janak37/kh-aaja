@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\DeclineReason;
 use App\Enums\ReservationStatus;
 use Database\Factories\ReservationFactory;
+use DomainException;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -86,5 +87,52 @@ class Reservation extends Model
     public function statusLinkExpired(): bool
     {
         return $this->board_date->toDateString() < now($this->shop->timezone)->subDays(2)->toDateString();
+    }
+
+    /**
+     * The owner can see the customer's phone for 2 days after the reservation date.
+     */
+    public function phoneVisibleToOwner(): bool
+    {
+        return $this->customer_phone !== null && ! $this->statusLinkExpired();
+    }
+
+    // ---------------------------------------------------------------
+    // Allowed changes: New → Confirmed → Collected, or → Declined
+    // ---------------------------------------------------------------
+
+    public function confirm(): void
+    {
+        $this->moveTo(ReservationStatus::Confirmed, from: [ReservationStatus::Pending], extra: [
+            'decided_at' => now(),
+        ]);
+    }
+
+    public function decline(DeclineReason $reason): void
+    {
+        $this->moveTo(ReservationStatus::Declined, from: [ReservationStatus::Pending, ReservationStatus::Confirmed], extra: [
+            'decline_reason' => $reason,
+            'decided_at' => $this->decided_at ?? now(),
+        ]);
+    }
+
+    public function markCollected(): void
+    {
+        $this->moveTo(ReservationStatus::Collected, from: [ReservationStatus::Confirmed]);
+    }
+
+    /**
+     * @param  list<ReservationStatus>  $from
+     * @param  array<string, mixed>  $extra
+     *
+     * @throws DomainException when the change is not allowed from the current status
+     */
+    private function moveTo(ReservationStatus $to, array $from, array $extra = []): void
+    {
+        if (! in_array($this->status, $from, true)) {
+            throw new DomainException(__('This reservation can no longer be changed.'));
+        }
+
+        $this->forceFill(['status' => $to] + $extra)->save();
     }
 }
