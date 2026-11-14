@@ -9,3 +9,5 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 // Every hour, close reservations nobody answered before their day ended.
 Schedule::command('reservations:expire')->hourly();
+// Five minutes past every hour, re-rank shops for the homepage.
+Schedule::command('shops:score')->hourlyAt(5);

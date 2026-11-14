@@ -1,9 +1,10 @@
 <?php
 
-use App\Enums\ReservationStatus;
 use App\Enums\ItemStatus;
+use App\Enums\ReservationStatus;
 use App\Enums\UserRole;
 use App\Models\Shop;
+use App\Services\KhaajaScore;
 use App\Services\ShopBoard;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -66,6 +67,7 @@ new #[Title('Dashboard')] class extends Component {
                 ->where('status', ReservationStatus::Pending)
                 ->where('board_date', $board->date())
                 ->count(),
+            'score' => app(KhaajaScore::class)->summary($shop),
         ];
     }
 
@@ -112,7 +114,7 @@ new #[Title('Dashboard')] class extends Component {
         </div>
     @elseif ($this->shop)
         @php($s = $this->summary)
-        
+
         @if ($this->shop->isSuspended())
             <div class="flex gap-3 rounded-xl border border-red-300 bg-red-50 p-4 text-red-800 dark:border-red-500/40 dark:bg-red-500/10 dark:text-red-300">
                 <flux:icon.exclamation-triangle class="size-5 shrink-0" />
@@ -212,6 +214,43 @@ new #[Title('Dashboard')] class extends Component {
                     </flux:text>
                 @endif
             </div>
+        </div>
+
+        {{-- Kh-aaja score --}}
+        <div class="rounded-xl border border-zinc-200 p-5 dark:border-zinc-700">
+            <div class="flex items-end justify-between gap-4">
+                <div>
+                    <flux:heading size="lg">{{ __('Kh-aaja score') }}</flux:heading>
+                    <flux:text>{{ __('Shops with a higher score are shown first on the homepage.') }}</flux:text>
+                </div>
+                <div class="shrink-0 text-4xl font-bold">
+                    {{ $s['score']['total'] }}<span class="text-base font-normal text-zinc-500">/100</span>
+                </div>
+            </div>
+
+            <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                @foreach ($s['score']['parts'] as $part => $points)
+                    @php($max = KhaajaScore::PARTS[$part])
+                    <div>
+                        <div class="flex justify-between text-sm">
+                            <span>{{ KhaajaScore::label($part) }}</span>
+                            <span class="text-zinc-500">{{ $points }}/{{ $max }}</span>
+                        </div>
+                        <div class="mt-1 h-2 rounded-full bg-zinc-200 dark:bg-zinc-700">
+                            <div @class(['h-2 rounded-full', 'bg-green-500' => $points >= $max * 0.7, 'bg-amber-500' => $points < $max * 0.7])
+                                 style="width: {{ round($points / $max * 100) }}%"></div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+
+            @if ($s['score']['tip'])
+                <div class="mt-4 rounded-lg bg-amber-50 p-3 text-sm text-amber-900 dark:bg-amber-500/10 dark:text-amber-200">
+                    💡 {{ $s['score']['tip'] }}
+                </div>
+            @endif
+
+            <flux:text size="sm" class="mt-3">{{ __('The Pro plan never changes your score or your place on the homepage.') }}</flux:text>
         </div>
 
         {{-- Getting started (disappears when all done) --}}

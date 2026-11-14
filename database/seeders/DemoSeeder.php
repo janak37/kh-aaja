@@ -12,6 +12,7 @@ use App\Models\Shop;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Sequence;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Artisan;
 
 /**
  * Local-only demo data: 1 admin, 6 shops with menus, today's boards,
@@ -70,5 +71,8 @@ class DemoSeeder extends Seeder
                 ->count(2)
                 ->create(['board_date' => $today->toDateString()]);
         });
+
+        // Give every demo shop its Kh-aaja score, so the homepage ranking works straight away.
+        Artisan::call('shops:score');
     }
 }
