@@ -1,5 +1,6 @@
 <?php
 
+use App\Logging\MaskPersonalData;
 use Monolog\Handler\NullHandler;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\SyslogUdpHandler;
@@ -48,18 +49,23 @@ return [
     | Available drivers: "single", "daily", "monthly", "slack", "syslog",
     |                    "errorlog", "monolog", "custom", "stack"
     |
+    | Kh-aaja: the channels we use pass every line through MaskPersonalData,
+    | which replaces customers' phone numbers with [phone].
+    |
     */
 
     'channels' => [
 
         'stack' => [
             'driver' => 'stack',
+            'tap' => [MaskPersonalData::class],
             'channels' => explode(',', (string) env('LOG_STACK', 'single')),
             'ignore_exceptions' => false,
         ],
 
         'single' => [
             'driver' => 'single',
+            'tap' => [MaskPersonalData::class],
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'replace_placeholders' => true,
@@ -67,6 +73,7 @@ return [
 
         'daily' => [
             'driver' => 'daily',
+            'tap' => [MaskPersonalData::class],
             'path' => storage_path('logs/laravel.log'),
             'level' => env('LOG_LEVEL', 'debug'),
             'max_files' => env('LOG_DAILY_DAYS', 14),
