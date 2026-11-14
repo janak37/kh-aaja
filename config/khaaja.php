@@ -19,5 +19,9 @@ return [
         'Kirtipur', 'Koteshwor', 'Lazimpat', 'Maharajgunj', 'New Road',
         'Patan', 'Putalisadak', 'Thamel',
     ],
-
+    // Languages offered in the switch: code => name shown to people
+    'locales' => [
+        'en' => 'English',
+        'ne' => 'नेपाली',
+    ],
 ];

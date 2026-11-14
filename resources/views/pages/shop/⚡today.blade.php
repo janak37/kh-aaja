@@ -167,7 +167,7 @@ new #[Title('Today')] class extends Component {
         <div>
             <flux:heading size="xl" level="1">{{ __('Today') }}</flux:heading>
             <flux:subheading>
-                {{ now($this->shop?->timezone ?? 'Asia/Kathmandu')->format('l, j F') }} ·
+                {{ now($this->shop?->timezone ?? 'Asia/Kathmandu')->translatedformat('l, j F') }} ·
                 @if ($this->lastUpdated)
                     {{ __('Last updated :time', ['time' => $this->lastUpdated]) }}
                 @else
