@@ -214,5 +214,20 @@
     "Board updated today": "आज बोर्ड अपडेट भयो",
     "Not updated today": "आज अपडेट भएको छैन",
     ":count shop today|:count shops today": ":count पसलमा आज|:count पसलमा आज",
-    "Cheapest": "सबैभन्दा सस्तो"
+    "Cheapest": "सबैभन्दा सस्तो",
+    "Kh-aaja score": "खाजा आज स्कोर",
+    "Shops with a higher score are shown first on the homepage.": "धेरै स्कोर भएका पसल होमपेजमा पहिले देखिन्छन्।",
+    "Fresh board": "ताजा बोर्ड",
+    "Updates every day": "दैनिक अपडेट",
+    "Honest stock": "इमानदार स्टक",
+    "Quick replies": "छिटो जवाफ",
+    "Complete menu": "पूरा मेनु",
+    "Loved by customers": "ग्राहकको माया",
+    "Update your board every morning before customers arrive.": "ग्राहक आउनुअघि हरेक बिहान बोर्ड अपडेट गर्नुहोस्।",
+    "Update every day, even when nothing changed. \"Copy yesterday\" takes one tap.": "केही नबदलिए पनि हरेक दिन अपडेट गर्नुहोस्। \"हिजोको जस्तै\" एक ट्यापमा हुन्छ।",
+    "Mark dishes sold out as soon as they finish, so nobody reserves them.": "परिकार सकिनेबित्तिकै सकियो भनी चिन्ह लगाउनुहोस्, ताकि कसैले बुक नगरोस्।",
+    "Answer reservations within 10 minutes.": "बुकिङको जवाफ १० मिनेटभित्र दिनुहोस्।",
+    "Add dish photos, a description and your opening hours.": "परिकारका फोटो, विवरण र खुल्ने समय थप्नुहोस्।",
+    "Put your QR code on the table so customers can ♥ your shop.": "QR कोड टेबलमा राख्नुहोस्, ताकि ग्राहकले तपाईंको पसललाई ♥ गर्न सकून्।",
+    "The Pro plan never changes your score or your place on the homepage.": "Pro प्लानले तपाईंको स्कोर वा होमपेजको स्थान कहिल्यै बदल्दैन।"
 }
