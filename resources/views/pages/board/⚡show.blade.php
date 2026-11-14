@@ -1,5 +1,6 @@
 <?php
 
+use App\Livewire\Concerns\CountsFavourites;
 use App\Models\DailyStatus;
 use App\Models\Item;
 use App\Models\Shop;
@@ -10,6 +11,8 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 
 new #[Layout('layouts::public')] class extends Component {
+    use CountsFavourites;
+
     public Shop $shop;
 
     public function mount(Shop $shop): void
@@ -77,11 +80,26 @@ new #[Layout('layouts::public')] class extends Component {
 <div wire:poll.15s.visible class="mx-auto min-h-screen w-full max-w-xl pb-28">
     {{-- Header --}}
     <header class="bg-white px-4 pb-5 pt-6 shadow-sm dark:bg-zinc-800">
-        <div class="mb-3 flex justify-end">
-            <x-language-switch />
+        <div class="mb-3 flex items-center justify-between gap-2">
+            <a href="{{ route('home') }}" class="text-sm font-semibold text-zinc-500 hover:text-zinc-900 dark:hover:text-white">
+                ← Kh-aaja
+            </a>
+            <div class="flex items-center gap-2">
+                <flux:button size="sm" variant="ghost" icon="heart" :href="route('favourites')" :aria-label="__('Favourites')" :tooltip="__('Favourites')" />
+                <x-language-switch />
+            </div>
         </div>
 
-        <flux:heading size="xl" level="1">{{ $shop->name }}</flux:heading>
+        <div class="flex items-start justify-between gap-3">
+            <flux:heading size="xl" level="1">{{ $shop->name }}</flux:heading>
+
+            <div class="flex shrink-0 items-center text-sm text-zinc-500">
+                @if ($shop->favourites_count > 0)
+                    <span>{{ $shop->favourites_count }}</span>
+                @endif
+                <x-fav-heart :shop="$shop" />
+            </div>
+        </div>
 
         <flux:text class="mt-1">
             {{ $shop->categoryLabel() }} · {{ $shop->area }}
@@ -143,9 +161,12 @@ new #[Layout('layouts::public')] class extends Component {
                                         <flux:badge color="green" size="sm">{{ __('Veg') }}</flux:badge>
                                     @endif
                                 </div>
-                                @if ($price)
-                                    <span class="shrink-0 text-lg font-semibold">Rs {{ number_format($price) }}</span>
-                                @endif
+                                <div class="flex shrink-0 items-center gap-1">
+                                    @if ($price)
+                                        <span class="text-lg font-semibold">Rs {{ number_format($price) }}</span>
+                                    @endif
+                                    <x-fav-heart :item="$item" />
+                                </div>
                             </div>
 
                             <x-status-pill :status="$row?->status" />
@@ -185,40 +206,44 @@ new #[Layout('layouts::public')] class extends Component {
                     $soldOut = $row?->status === \App\Enums\ItemStatus::SoldOut;
                 @endphp
 
-                <div wire:key="menu-{{ $item->id }}" @class(['flex items-center gap-3 p-3', 'opacity-50' => $soldOut])>
-                    @if ($item->photoUrl())
-                        <img src="{{ $item->photoUrl() }}" alt="" loading="lazy" class="size-14 shrink-0 rounded-xl object-cover">
-                    @else
-                        <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-400 dark:bg-zinc-900">
-                            <flux:icon.photo class="size-5" />
-                        </div>
-                    @endif
+                <div wire:key="menu-{{ $item->id }}" class="flex items-center gap-3 p-3">
+                    <div @class(['flex min-w-0 flex-1 items-center gap-3', 'opacity-50' => $soldOut])>
+                        @if ($item->photoUrl())
+                            <img src="{{ $item->photoUrl() }}" alt="" loading="lazy" class="size-14 shrink-0 rounded-xl object-cover">
+                        @else
+                            <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-400 dark:bg-zinc-900">
+                                <flux:icon.photo class="size-5" />
+                            </div>
+                        @endif
 
-                    <div class="min-w-0 flex-1">
-                        <div class="flex items-center gap-2">
-                            <span class="truncate font-medium">{{ $item->name }}</span>
-                            @if ($item->is_veg)
-                                <flux:badge color="green" size="sm">{{ __('Veg') }}</flux:badge>
-                            @endif
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="truncate font-medium">{{ $item->name }}</span>
+                                @if ($item->is_veg)
+                                    <flux:badge color="green" size="sm">{{ __('Veg') }}</flux:badge>
+                                @endif
+                            </div>
+                            <div class="mt-1 flex flex-wrap items-center gap-2">
+                                <x-status-pill :status="$row?->status" />
+                                @if (in_array($row?->status, [\App\Enums\ItemStatus::Available, \App\Enums\ItemStatus::Low], true))
+                                    <a href="{{ route('board.reserve', [$shop, $item]) }}" class="text-xs font-semibold underline underline-offset-2">
+                                        {{ __('Reserve') }}
+                                    </a>
+                                @endif
+                                @if ($shop->whatsappUrl($item->name) && ! $soldOut)
+                                    <a href="{{ $shop->whatsappUrl($item->name) }}" target="_blank" rel="noopener" class="text-xs font-medium text-green-700 underline dark:text-green-400">
+                                        {{ __('Ask') }}
+                                    </a>
+                                @endif
+                            </div>
                         </div>
-                        <div class="mt-1 flex flex-wrap items-center gap-2">
-                            <x-status-pill :status="$row?->status" />
-                            @if (in_array($row?->status, [\App\Enums\ItemStatus::Available, \App\Enums\ItemStatus::Low], true))
-                                <a href="{{ route('board.reserve', [$shop, $item]) }}" class="text-xs font-semibold underline underline-offset-2">
-                                    {{ __('Reserve') }}
-                                </a>
-                            @endif
-                            @if ($shop->whatsappUrl($item->name) && ! $soldOut)
-                                <a href="{{ $shop->whatsappUrl($item->name) }}" target="_blank" rel="noopener" class="text-xs font-medium text-green-700 underline dark:text-green-400">
-                                    {{ __('Ask') }}
-                                </a>
-                            @endif
-                        </div>
+
+                        @if ($price)
+                            <span class="shrink-0 font-semibold">Rs {{ number_format($price) }}</span>
+                        @endif
                     </div>
 
-                    @if ($price)
-                        <span class="shrink-0 font-semibold">Rs {{ number_format($price) }}</span>
-                    @endif
+                    <x-fav-heart :item="$item" />
                 </div>
             @empty
                 <flux:text class="p-4">{{ __('This shop has not added its menu yet.') }}</flux:text>

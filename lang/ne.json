@@ -200,5 +200,19 @@
     ":qty × :dish": ":qty × :dish",
     "Reservations waiting": "कुर्दै गरेका बुकिङ",
     ":count waiting|:count waiting": ":count वटा कुर्दै|:count वटा कुर्दै",
-    "Open reservations": "बुकिङहरू खोल्नुहोस्"
+    "Open reservations": "बुकिङहरू खोल्नुहोस्",
+    "Favourites": "मनपर्ने",
+    "Save to favourites": "मनपर्नेमा सेभ गर्नुहोस्",
+    "Saved on this phone only. No account needed.": "यो फोनमा मात्र सेभ हुन्छ। खाता चाहिँदैन।",
+    "Loading…": "लोड हुँदैछ…",
+    "Nothing saved yet.": "अहिलेसम्म केही सेभ गरिएको छैन।",
+    "Tap the ♥ on a shop or a dish to keep it here.": "पसल वा परिकारमा ♥ थिच्नुहोस्, यहाँ देखिन्छ।",
+    "Browse shops": "पसलहरू हेर्नुहोस्",
+    "Your dishes, available today": "तपाईंका परिकार, आज पाइने",
+    ":count saved dish is not on any board today.|:count saved dishes are not on any board today.": ":count वटा सेभ गरिएको परिकार आज कुनै बोर्डमा छैन।|:count वटा सेभ गरिएका परिकार आज कुनै बोर्डमा छैनन्।",
+    "Your shops": "तपाईंका पसलहरू",
+    "Board updated today": "आज बोर्ड अपडेट भयो",
+    "Not updated today": "आज अपडेट भएको छैन",
+    ":count shop today|:count shops today": ":count पसलमा आज|:count पसलमा आज",
+    "Cheapest": "सबैभन्दा सस्तो"
 }
