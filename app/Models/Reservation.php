@@ -78,4 +78,13 @@ class Reservation extends Model
     {
         return $this->belongsTo(Item::class);
     }
+
+    /**
+     * The customer's status link works until 2 days after the reservation date
+     * (in the shop's timezone), then shows 404.
+     */
+    public function statusLinkExpired(): bool
+    {
+        return $this->board_date->toDateString() < now($this->shop->timezone)->subDays(2)->toDateString();
+    }
 }

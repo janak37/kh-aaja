@@ -154,11 +154,18 @@ new #[Layout('layouts::public')] class extends Component {
                                 <flux:text>{{ $row->special_note }}</flux:text>
                             @endif
 
-                            @if ($shop->whatsappUrl($item->name))
-                                <a href="{{ $shop->whatsappUrl($item->name) }}" target="_blank" rel="noopener" class="inline-block text-sm font-medium text-green-700 underline dark:text-green-400">
-                                    {{ __('Ask on WhatsApp') }}
-                                </a>
-                            @endif
+                            <div class="flex flex-wrap items-center gap-3">
+                                @if (in_array($row?->status, [\App\Enums\ItemStatus::Available, \App\Enums\ItemStatus::Low], true))
+                                    <flux:button size="sm" variant="primary" :href="route('board.reserve', [$shop, $item])">
+                                        {{ __('Reserve') }}
+                                    </flux:button>
+                                @endif
+                                @if ($shop->whatsappUrl($item->name))
+                                    <a href="{{ $shop->whatsappUrl($item->name) }}" target="_blank" rel="noopener" class="text-sm font-medium text-green-700 underline dark:text-green-400">
+                                        {{ __('Ask on WhatsApp') }}
+                                    </a>
+                                @endif
+                            </div>
                         </div>
                     </article>
                 @endforeach
@@ -196,6 +203,11 @@ new #[Layout('layouts::public')] class extends Component {
                         </div>
                         <div class="mt-1 flex flex-wrap items-center gap-2">
                             <x-status-pill :status="$row?->status" />
+                            @if (in_array($row?->status, [\App\Enums\ItemStatus::Available, \App\Enums\ItemStatus::Low], true))
+                                <a href="{{ route('board.reserve', [$shop, $item]) }}" class="text-xs font-semibold underline underline-offset-2">
+                                    {{ __('Reserve') }}
+                                </a>
+                            @endif
                             @if ($shop->whatsappUrl($item->name) && ! $soldOut)
                                 <a href="{{ $shop->whatsappUrl($item->name) }}" target="_blank" rel="noopener" class="text-xs font-medium text-green-700 underline dark:text-green-400">
                                     {{ __('Ask') }}

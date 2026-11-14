@@ -7,6 +7,8 @@ Route::livewire('/', 'pages::home')->name('home');
 
 // Public shop board: no login needed
 Route::livewire('s/{shop}', 'pages::board.show')->name('board.show');
+Route::livewire('s/{shop}/reserve/{item}', 'pages::board.reserve')->scopeBindings()->name('board.reserve');
+Route::livewire('r/{reservation:public_token}', 'pages::reservation.show')->name('reservation.show');
 
 // Language switch (English / नेपाली): no login needed, works for customers too
 Route::get('lang/{locale}', LocaleController::class)->name('locale.switch');
