@@ -11,3 +11,5 @@ Artisan::command('inspire', function () {
 Schedule::command('reservations:expire')->hourly();
 // Five minutes past every hour, re-rank shops for the homepage.
 Schedule::command('shops:score')->hourlyAt(5);
+// Every night at 2:15 am Kathmandu time, erase customer details older than 30 days.
+Schedule::command('reservations:purge')->dailyAt('02:15')->timezone('Asia/Kathmandu');
