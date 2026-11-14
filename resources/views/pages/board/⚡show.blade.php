@@ -77,6 +77,10 @@ new #[Layout('layouts::public')] class extends Component {
 <div wire:poll.15s.visible class="mx-auto min-h-screen w-full max-w-xl pb-28">
     {{-- Header --}}
     <header class="bg-white px-4 pb-5 pt-6 shadow-sm dark:bg-zinc-800">
+        <div class="mb-3 flex justify-end">
+            <x-language-switch />
+        </div>
+
         <flux:heading size="xl" level="1">{{ $shop->name }}</flux:heading>
 
         <flux:text class="mt-1">
