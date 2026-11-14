@@ -7,6 +7,7 @@ Route::livewire('/', 'pages::home')->name('home');
 
 // Public shop board: no login needed
 Route::livewire('s/{shop}', 'pages::board.show')->name('board.show');
+Route::livewire('favourites', 'pages::favourites')->name('favourites');
 Route::livewire('s/{shop}/reserve/{item}', 'pages::board.reserve')->scopeBindings()->name('board.reserve');
 Route::livewire('r/{reservation:public_token}', 'pages::reservation.show')->name('reservation.show');
 

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\ItemStatus;
+use App\Livewire\Concerns\CountsFavourites;
 use App\Models\DailyStatus;
 use App\Models\Item;
 use App\Models\Shop;
@@ -13,6 +14,8 @@ use Livewire\Attributes\Url;
 use Livewire\Component;
 
 new #[Layout('layouts::public')] #[Title('Kh-aaja')] class extends Component {
+    use CountsFavourites;
+
     #[Url(except: '')]
     public string $q = '';
 
@@ -119,6 +122,7 @@ new #[Layout('layouts::public')] #[Title('Kh-aaja')] class extends Component {
         </a>
 
         <div class="flex items-center gap-2">
+            <flux:button size="sm" variant="ghost" icon="heart" :href="route('favourites')" :aria-label="__('Favourites')" :tooltip="__('Favourites')" />
             <x-language-switch />
             @auth
                 <flux:button size="sm" :href="route('dashboard')">{{ __('Dashboard') }}</flux:button>
@@ -177,26 +181,30 @@ new #[Layout('layouts::public')] #[Title('Kh-aaja')] class extends Component {
                         $price = $special->price ?? $item->default_price;
                     @endphp
 
-                    <a href="{{ route('board.show', $shop) }}" wire:key="special-{{ $special->id }}" class="w-56 shrink-0 snap-start overflow-hidden rounded-2xl border border-amber-300 bg-white dark:border-amber-500/40 dark:bg-zinc-800">
-                        @if ($item->photoUrl())
-                            <img src="{{ $item->photoUrl() }}" alt="{{ $item->name }}" loading="lazy" class="h-32 w-full object-cover">
-                        @else
-                            <div class="flex h-32 items-center justify-center bg-zinc-100 text-zinc-400 dark:bg-zinc-900">
-                                <flux:icon.photo class="size-8" />
-                            </div>
-                        @endif
+                    <div wire:key="special-{{ $special->id }}" class="relative w-56 shrink-0 snap-start overflow-hidden rounded-2xl border border-amber-300 bg-white dark:border-amber-500/40 dark:bg-zinc-800">
+                        <a href="{{ route('board.show', $shop) }}" class="block">
+                            @if ($item->photoUrl())
+                                <img src="{{ $item->photoUrl() }}" alt="{{ $item->name }}" loading="lazy" class="h-32 w-full object-cover">
+                            @else
+                                <div class="flex h-32 items-center justify-center bg-zinc-100 text-zinc-400 dark:bg-zinc-900">
+                                    <flux:icon.photo class="size-8" />
+                                </div>
+                            @endif
 
-                        <div class="space-y-1 p-3">
-                            <div class="flex items-start justify-between gap-2">
-                                <span class="font-semibold leading-tight">{{ $item->name }}</span>
-                                @if ($price)
-                                    <span class="shrink-0 text-sm font-semibold">Rs {{ number_format($price) }}</span>
-                                @endif
+                            <div class="space-y-1 p-3">
+                                <div class="flex items-start justify-between gap-2">
+                                    <span class="font-semibold leading-tight">{{ $item->name }}</span>
+                                    @if ($price)
+                                        <span class="shrink-0 text-sm font-semibold">Rs {{ number_format($price) }}</span>
+                                    @endif
+                                </div>
+                                <div class="truncate text-xs text-zinc-500">{{ $shop->name }} · {{ $shop->area }}</div>
+                                <x-status-pill :status="$special->status" />
                             </div>
-                            <div class="truncate text-xs text-zinc-500">{{ $shop->name }} · {{ $shop->area }}</div>
-                            <x-status-pill :status="$special->status" />
-                        </div>
-                    </a>
+                        </a>
+
+                        <x-fav-heart :item="$item" class="absolute right-2 top-2 bg-white/90 shadow-sm dark:bg-zinc-900/80" />
+                    </div>
                 @endforeach
             </div>
         </section>
@@ -216,16 +224,24 @@ new #[Layout('layouts::public')] #[Title('Kh-aaja')] class extends Component {
                     ));
                 @endphp
 
-                <a href="{{ route('board.show', $shop) }}" wire:key="shop-{{ $shop->id }}" @class([
-                    'block rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-800',
+                <div wire:key="shop-{{ $shop->id }}" @class([
+                    'flex gap-3 rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-800',
                     'opacity-60' => ! $shop->updated_today,
                 ])>
-                    <div class="flex items-start justify-between gap-3">
-                        <div class="min-w-0">
-                            <div class="truncate font-semibold">{{ $shop->name }}</div>
-                            <div class="text-sm text-zinc-500">{{ $shop->categoryLabel() }} · {{ $shop->area }}</div>
-                        </div>
+                    <a href="{{ route('board.show', $shop) }}" class="min-w-0 flex-1">
+                        <div class="truncate font-semibold">{{ $shop->name }}</div>
+                        <div class="text-sm text-zinc-500">{{ $shop->categoryLabel() }} · {{ $shop->area }}</div>
 
+                        @if ($ready->isNotEmpty())
+                            <div class="mt-3 flex flex-wrap gap-1.5">
+                                @foreach ($ready->take(4) as $item)
+                                    <span class="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs dark:bg-zinc-700">{{ $item->name }}</span>
+                                @endforeach
+                            </div>
+                        @endif
+                    </a>
+
+                    <div class="flex shrink-0 flex-col items-end justify-between gap-2">
                         @if ($shop->updated_today)
                             <flux:badge color="green" size="sm">
                                 {{ trans_choice(':count dish ready|:count dishes ready', $ready->count()) }}
@@ -233,16 +249,15 @@ new #[Layout('layouts::public')] #[Title('Kh-aaja')] class extends Component {
                         @else
                             <flux:badge color="zinc" size="sm">{{ __('Not updated today') }}</flux:badge>
                         @endif
-                    </div>
 
-                    @if ($ready->isNotEmpty())
-                        <div class="mt-3 flex flex-wrap gap-1.5">
-                            @foreach ($ready->take(4) as $item)
-                                <span class="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs dark:bg-zinc-700">{{ $item->name }}</span>
-                            @endforeach
+                        <div class="flex items-center text-sm text-zinc-500">
+                            @if ($shop->favourites_count > 0)
+                                <span>{{ $shop->favourites_count }}</span>
+                            @endif
+                            <x-fav-heart :shop="$shop" />
                         </div>
-                    @endif
-                </a>
+                    </div>
+                </div>
             @empty
                 <div class="rounded-2xl border border-dashed border-zinc-300 p-6 text-center dark:border-zinc-600">
                     <flux:text>{{ __('No shops match your search.') }}</flux:text>
