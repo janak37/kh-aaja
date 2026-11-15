@@ -9,12 +9,17 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Livewire\Attributes\Computed;
 use Livewire\Attributes\Layout;
+use Livewire\Attributes\Locked;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Url;
 use Livewire\Component;
 
 new #[Layout('layouts::public')] #[Title('Kh-aaja')] class extends Component {
     use CountsFavourites;
+
+    private const PER_PAGE = 12;
+
+    private const MAX_SHOWN = 300;
 
     #[Url(except: '')]
     public string $q = '';
@@ -25,14 +30,56 @@ new #[Layout('layouts::public')] #[Title('Kh-aaja')] class extends Component {
     #[Url(except: '')]
     public string $category = '';
 
+    /** How many shops are listed; grows with "Show more". */
+    #[Locked]
+    public int $showing = self::PER_PAGE;
+
+    /** @var list<int> Shops saved on this device (sent by the browser). */
+    #[Locked]
+    public array $favouriteIds = [];
+
     public function toggleCategory(string $category): void
     {
         $this->category = $this->category === $category ? '' : $category;
+        $this->reset('showing');
     }
 
     public function clearFilters(): void
     {
-        $this->reset('q', 'area', 'category');
+        $this->reset('q', 'area', 'category', 'showing');
+    }
+
+    /**
+     * New search or filter: start again from the first 12 shops.
+     */
+    public function updated(string $property): void
+    {
+        if (in_array($property, ['q', 'area', 'category'], true)) {
+            $this->reset('showing');
+        }
+    }
+
+    public function showMore(): void
+    {
+        $this->showing = min($this->showing + self::PER_PAGE, self::MAX_SHOWN);
+    }
+
+    /**
+     * The browser sends the shops saved on this device. Anything odd is dropped.
+     *
+     * @param  array<mixed>  $shopIds
+     */
+    public function loadFavourites(array $shopIds): void
+    {
+        $ids = [];
+        foreach ($shopIds as $id) {
+            if (count($ids) < 50 && is_int($id) && $id > 0 && ! in_array($id, $ids, true)) {
+                $ids[] = $id;
+            }
+        }
+
+        $this->favouriteIds = $ids;
+        unset($this->favouriteShops);
     }
 
     /**
@@ -79,7 +126,42 @@ new #[Layout('layouts::public')] #[Title('Kh-aaja')] class extends Component {
             ->orderByDesc('updated_today')
             ->orderByDesc('score')
             ->orderByDesc('last_board_date')
-            ->limit(30)
+            ->limit($this->showing)
+            ->get();
+    }
+
+    /**
+     * How many shops match the search and filters in total.
+     */
+    #[Computed]
+    public function shopCount(): int
+    {
+        $query = Shop::query();
+        $this->applyShopFilters($query);
+
+        return $query->count();
+    }
+
+    /**
+     * Saved shops for the "Your favourites" strip: updated today first.
+     *
+     * @return Collection<int, Shop>
+     */
+    #[Computed]
+    public function favouriteShops(): Collection
+    {
+        if ($this->favouriteIds === []) {
+            return new Collection;
+        }
+
+        $today = $this->today();
+
+        return Shop::query()
+            ->whereIn('id', $this->favouriteIds)
+            ->whereNull('suspended_at')
+            ->withExists(['boardUpdates as updated_today' => fn ($q) => $q->where('board_date', $today)])
+            ->orderByDesc('updated_today')
+            ->orderBy('name')
             ->get();
     }
 
@@ -114,7 +196,7 @@ new #[Layout('layouts::public')] #[Title('Kh-aaja')] class extends Component {
     }
 }; ?>
 
-<div wire:poll.30s.visible class="pb-12">
+<div wire:poll.30s.visible class="pb-12" x-data x-init="$store.fav.shops.length && $wire.loadFavourites($store.fav.shops)">
     {{-- Hero: question, search and filters --}}
     <section class="border-b border-orange-100 bg-gradient-to-b from-orange-50 to-stone-50">
         <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
@@ -152,6 +234,26 @@ new #[Layout('layouts::public')] #[Title('Kh-aaja')] class extends Component {
             </div>
         </div>
     </section>
+
+    {{-- Your favourites (only if this phone has saved shops) --}}
+    @if ($this->favouriteShops->isNotEmpty())
+        <section class="mx-auto max-w-6xl px-4 pt-8 sm:px-6">
+            <div class="flex items-end justify-between gap-3">
+                <h2 class="text-xl font-semibold"><span class="text-orange-600">♥</span> {{ __('Your favourites') }}</h2>
+                <a href="{{ route('favourites') }}" class="text-sm font-semibold text-orange-700 hover:text-orange-800">{{ __('See all') }} →</a>
+            </div>
+
+            <div class="-mx-4 mt-4 flex gap-3 overflow-x-auto px-4 pb-2 sm:mx-0 sm:flex-wrap sm:px-0">
+                @foreach ($this->favouriteShops as $fav)
+                    <a href="{{ route('board.show', $fav) }}" wire:key="fav-{{ $fav->id }}" class="flex shrink-0 items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm shadow-sm hover:border-orange-300">
+                        <span @class(['size-2 rounded-full', 'bg-green-500' => $fav->updated_today, 'bg-stone-300' => ! $fav->updated_today])
+                              title="{{ $fav->updated_today ? __('Board updated today') : __('Not updated today') }}"></span>
+                        <span class="font-medium">{{ $fav->name }}</span>
+                    </a>
+                @endforeach
+            </div>
+        </section>
+    @endif
 
     {{-- Today's specials: a swipe row on phones, a grid on bigger screens --}}
     @if ($this->specials->isNotEmpty())
@@ -199,7 +301,7 @@ new #[Layout('layouts::public')] #[Title('Kh-aaja')] class extends Component {
     <section class="mx-auto max-w-6xl px-4 pt-10 sm:px-6">
         <div class="flex items-end justify-between gap-3">
             <h2 class="text-xl font-semibold">{{ __('Shops') }}</h2>
-            <span class="text-sm text-stone-500">{{ trans_choice(':count shop|:count shops', $this->shops->count()) }}</span>
+            <span class="text-sm text-stone-500">{{ trans_choice(':count shop|:count shops', $this->shopCount) }}</span>
         </div>
 
         <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -259,6 +361,15 @@ new #[Layout('layouts::public')] #[Title('Kh-aaja')] class extends Component {
                 </div>
             @endforelse
         </div>
+
+        @if ($this->shopCount > $this->shops->count())
+            <div class="mt-6 text-center">
+                <button type="button" wire:click="showMore" wire:loading.attr="disabled"
+                        class="rounded-lg border border-stone-300 bg-white px-5 py-2.5 text-sm font-semibold text-stone-700 shadow-sm hover:border-orange-300 hover:text-orange-700 disabled:opacity-50">
+                    {{ __('Show more shops') }}
+                </button>
+            </div>
+        @endif
     </section>
 
     {{-- For shop owners --}}

@@ -1,5 +1,6 @@
 <?php
 
+use App\Console\Commands\PurgeReservationDetails;
 use App\Enums\ItemStatus;
 use App\Models\Item;
 use App\Models\Shop;
@@ -109,46 +110,56 @@ new #[Layout('layouts::public')] class extends Component {
     }
 }; ?>
 
-<div class="mx-auto min-h-screen w-full max-w-xl px-4 pb-16 pt-6">
-    <div class="flex items-center justify-between gap-3">
-        <a href="{{ route('board.show', $shop) }}" class="text-sm underline underline-offset-4">← {{ $shop->name }}</a>
-        <x-language-switch />
-    </div>
+<div class="mx-auto w-full max-w-xl px-4 py-8 sm:px-6 sm:py-12">
+    <a href="{{ route('board.show', $shop) }}" class="text-sm font-medium text-stone-500 hover:text-orange-700">← {{ $shop->name }}</a>
 
-    <div class="mt-6 flex items-center gap-3">
-        @if ($item->photoUrl())
-            <img src="{{ $item->photoUrl() }}" alt="" class="size-16 shrink-0 rounded-xl object-cover">
-        @endif
-        <div>
-            <flux:heading size="xl" level="1">{{ __('Reserve :dish', ['dish' => $item->name]) }}</flux:heading>
-            <flux:text>{{ $shop->name }} · {{ $shop->area }}</flux:text>
-        </div>
-    </div>
-
-    @if (! $this->canReserve)
-        <div class="mt-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-200">
-            {{ __('This dish cannot be reserved right now. Please call the shop instead.') }}
-        </div>
-        <flux:button class="mt-4" icon="phone" :href="'tel:'.$shop->phone">{{ __('Call') }}</flux:button>
-    @else
-        <form wire:submit="reserve" class="mt-6 space-y-5">
-            <flux:input wire:model="name" :label="__('Your name')" maxlength="80" required autocomplete="name" />
-            <flux:input wire:model="phone" :label="__('Mobile number')" type="tel" inputmode="numeric" placeholder="98XXXXXXXX" required autocomplete="tel" />
-            <flux:input wire:model="quantity" :label="__('How many plates?')" type="number" inputmode="numeric" min="1" max="20" required />
-            <flux:textarea wire:model="note" :label="__('Note for the shop (optional)')" rows="2" maxlength="200" :placeholder="__('e.g. I will pick up at 1 pm')" />
-
-            {{-- Honeypot: invisible to people and screen readers --}}
-            <div class="hidden" aria-hidden="true">
-                <label>Website <input type="text" wire:model="website" tabindex="-1" autocomplete="off"></label>
-            </div>
-
+    <div class="mt-4 rounded-2xl bg-white p-6 shadow-sm ring-1 ring-stone-200 sm:p-8">
+        <div class="flex items-center gap-4">
+            @if ($item->photoUrl())
+                <img src="{{ $item->photoUrl() }}" alt="" class="size-16 shrink-0 rounded-xl object-cover">
+            @else
+                <div class="flex size-16 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-orange-50 to-amber-100 text-3xl">🍽️</div>
+            @endif
             <div>
-                <flux:checkbox wire:model="consent" :label="__('Your name and number go only to :shop, and are deleted after 30 days.', ['shop' => $shop->name])" />
-                <flux:error name="consent" />
+                <h1 class="text-2xl font-bold tracking-tight">{{ __('Reserve :dish', ['dish' => $item->name]) }}</h1>
+                <p class="text-stone-500">{{ $shop->name }} · {{ $shop->area }}</p>
             </div>
+        </div>
 
-            <flux:button type="submit" variant="primary" class="w-full">{{ __('Send reservation') }}</flux:button>
-            <flux:text size="sm">{{ __('The shop will confirm or decline. You will see the answer on the next page.') }}</flux:text>
-        </form>
-    @endif
+        @if (! $this->canReserve)
+            <div class="mt-6 rounded-xl border border-amber-300 bg-amber-50 p-4 text-amber-900">
+                {{ __('This dish cannot be reserved right now. Please call the shop instead.') }}
+            </div>
+            <a href="tel:{{ $shop->phone }}" class="mt-4 flex items-center justify-center gap-2 rounded-xl bg-orange-600 py-3 font-semibold text-white hover:bg-orange-700">
+                <flux:icon.phone class="size-5" />
+                {{ __('Call') }}
+            </a>
+        @else
+            <form wire:submit="reserve" class="mt-6 space-y-5">
+                <flux:input wire:model="name" :label="__('Your name')" maxlength="80" required autocomplete="name" />
+                <flux:input wire:model="phone" :label="__('Mobile number')" type="tel" inputmode="numeric" placeholder="98XXXXXXXX" required autocomplete="tel" />
+                <flux:input wire:model="quantity" :label="__('How many plates?')" type="number" inputmode="numeric" min="1" max="20" required />
+                <flux:textarea wire:model="note" :label="__('Note for the shop (optional)')" rows="2" maxlength="200" :placeholder="__('e.g. I will pick up at 1 pm')" />
+
+                {{-- Honeypot: invisible to people and screen readers --}}
+                <div class="hidden" aria-hidden="true">
+                    <label>Website <input type="text" wire:model="website" tabindex="-1" autocomplete="off"></label>
+                </div>
+
+                <div class="rounded-xl bg-stone-50 p-4 ring-1 ring-stone-200">
+                    <flux:checkbox wire:model="consent" :label="__('Your name and number go only to :shop, and are deleted after :days days.', [
+                        'shop' => $shop->name,
+                        'days' => PurgeReservationDetails::AFTER_DAYS,
+                    ])" />
+                    <flux:error name="consent" />
+                    <a href="{{ route('privacy') }}" target="_blank" class="mt-2 inline-block text-sm font-medium text-orange-700 underline underline-offset-2">
+                        {{ __('How we handle your details') }}
+                    </a>
+                </div>
+
+                <flux:button type="submit" variant="primary" class="w-full">{{ __('Send reservation') }}</flux:button>
+                <p class="text-center text-sm text-stone-500">{{ __('The shop will confirm or decline. You will see the answer on the next page.') }}</p>
+            </form>
+        @endif
+    </div>
 </div>
