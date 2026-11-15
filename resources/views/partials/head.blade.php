@@ -12,4 +12,6 @@
 @fonts
 
 @vite(['resources/css/app.css', 'resources/js/app.js'])
-@fluxAppearance
+@fonts
+
+@vite(['resources/css/app.css', 'resources/js/app.js'])

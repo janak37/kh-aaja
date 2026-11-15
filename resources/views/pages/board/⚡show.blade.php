@@ -77,38 +77,32 @@ new #[Layout('layouts::public')] class extends Component {
     }
 }; ?>
 
-<div wire:poll.15s.visible class="mx-auto min-h-screen w-full max-w-xl pb-28">
-    {{-- Header --}}
-    <header class="bg-white px-4 pb-5 pt-6 shadow-sm dark:bg-zinc-800">
-        <div class="mb-3 flex items-center justify-between gap-2">
-            <a href="{{ route('home') }}" class="text-sm font-semibold text-zinc-500 hover:text-zinc-900 dark:hover:text-white">
-                ← Kh-aaja
-            </a>
-            <div class="flex items-center gap-2">
-                <flux:button size="sm" variant="ghost" icon="heart" :href="route('favourites')" :aria-label="__('Favourites')" :tooltip="__('Favourites')" />
-                <x-language-switch />
-            </div>
-        </div>
+<div wire:poll.15s.visible class="mx-auto w-full max-w-4xl pb-28 sm:px-6">
+    {{-- Back to all shops --}}
+    <div class="px-4 pt-4 sm:px-0">
+        <a href="{{ route('home') }}" class="text-sm font-medium text-stone-500 hover:text-orange-700">← {{ __('All shops') }}</a>
+    </div>
 
+    {{-- Shop header --}}
+    <header class="mt-3 bg-white px-4 py-6 shadow-sm ring-1 ring-stone-200 sm:rounded-2xl sm:px-8">
         <div class="flex items-start justify-between gap-3">
-            <flux:heading size="xl" level="1">{{ $shop->name }}</flux:heading>
+            <div class="min-w-0">
+                <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">{{ $shop->name }}</h1>
+                <p class="mt-1 text-stone-500">
+                    {{ $shop->categoryLabel() }} · {{ $shop->area }}
+                    @if ($shop->opens_at && $shop->closes_at)
+                        · {{ substr($shop->opens_at, 0, 5) }}–{{ substr($shop->closes_at, 0, 5) }}
+                    @endif
+                </p>
+            </div>
 
-            <div class="flex shrink-0 items-center text-sm text-zinc-500">
-                @if ($shop->favourites_count > 0)
-                    <span>{{ $shop->favourites_count }}</span>
-                @endif
+            <div class="flex shrink-0 items-center rounded-full bg-orange-50 py-0.5 pl-3 pr-0.5 text-sm font-medium text-orange-800">
+                <span>{{ $shop->favourites_count }}</span>
                 <x-fav-heart :shop="$shop" />
             </div>
         </div>
 
-        <flux:text class="mt-1">
-            {{ $shop->categoryLabel() }} · {{ $shop->area }}
-            @if ($shop->opens_at && $shop->closes_at)
-                · {{ substr($shop->opens_at, 0, 5) }}–{{ substr($shop->closes_at, 0, 5) }}
-            @endif
-        </flux:text>
-
-        <div class="mt-3 flex flex-wrap items-center gap-2">
+        <div class="mt-4 flex flex-wrap items-center gap-2">
             @if ($this->isReliable)
                 <flux:badge color="green" size="sm" icon="check-badge">{{ __('Reliable board') }}</flux:badge>
             @endif
@@ -120,40 +114,40 @@ new #[Layout('layouts::public')] class extends Component {
             @endif
 
             @if ($this->updatedAgo)
-                <flux:text size="sm">
+                <span class="text-sm text-stone-500">
                     {{ __('Board updated :ago', ['ago' => $this->updatedAgo]) }}
                     @if ($this->streak >= 3)
-                        · {{ __(':count days in a row', ['count' => $this->streak]) }}
+                        · 🔥 {{ __(':count days in a row', ['count' => $this->streak]) }}
                     @endif
-                </flux:text>
+                </span>
             @else
                 <flux:badge color="amber" size="sm">{{ __('Not updated today') }}</flux:badge>
             @endif
         </div>
 
         @if ($shop->description)
-            <flux:text class="mt-3">{{ $shop->description }}</flux:text>
+            <p class="mt-4 max-w-2xl text-stone-600">{{ $shop->description }}</p>
         @endif
     </header>
 
-    {{-- Today's specials --}}
+    {{-- Today's specials: 1 column on phones, 2 on bigger screens --}}
     @if ($this->specials->isNotEmpty())
-        <section class="px-4 pt-6">
-            <flux:heading size="lg">⭐ {{ __("Today's specials") }}</flux:heading>
+        <section class="px-4 pt-8 sm:px-0">
+            <h2 class="text-xl font-semibold">⭐ {{ __("Today's specials") }}</h2>
 
-            <div class="mt-3 space-y-3">
+            <div class="mt-4 grid gap-4 sm:grid-cols-2">
                 @foreach ($this->specials as $item)
                     @php
                         $row = $this->statuses->get($item->id);
                         $price = $row?->price ?? $item->default_price;
                     @endphp
 
-                    <article wire:key="special-{{ $item->id }}" class="overflow-hidden rounded-2xl border border-amber-300 bg-white dark:border-amber-500/40 dark:bg-zinc-800">
+                    <article wire:key="special-{{ $item->id }}" class="flex flex-col overflow-hidden rounded-2xl border border-orange-200 bg-white shadow-sm">
                         @if ($item->photoUrl())
-                            <img src="{{ $item->photoUrl() }}" alt="{{ $item->name }}" loading="lazy" class="h-40 w-full object-cover sm:h-56">
+                            <img src="{{ $item->photoUrl() }}" alt="{{ $item->name }}" loading="lazy" class="h-44 w-full object-cover">
                         @endif
 
-                        <div class="space-y-2 p-4">
+                        <div class="flex flex-1 flex-col gap-2 p-4">
                             <div class="flex items-start justify-between gap-3">
                                 <div class="flex flex-wrap items-center gap-2">
                                     <span class="text-lg font-semibold">{{ $item->name }}</span>
@@ -163,7 +157,7 @@ new #[Layout('layouts::public')] class extends Component {
                                 </div>
                                 <div class="flex shrink-0 items-center gap-1">
                                     @if ($price)
-                                        <span class="text-lg font-semibold">Rs {{ number_format($price) }}</span>
+                                        <span class="text-lg font-semibold text-orange-700">Rs {{ number_format($price) }}</span>
                                     @endif
                                     <x-fav-heart :item="$item" />
                                 </div>
@@ -172,17 +166,17 @@ new #[Layout('layouts::public')] class extends Component {
                             <x-status-pill :status="$row?->status" />
 
                             @if ($row?->special_note)
-                                <flux:text>{{ $row->special_note }}</flux:text>
+                                <p class="text-sm text-stone-600">{{ $row->special_note }}</p>
                             @endif
 
-                            <div class="flex flex-wrap items-center gap-3">
+                            <div class="mt-auto flex flex-wrap items-center gap-3 pt-2">
                                 @if (in_array($row?->status, [\App\Enums\ItemStatus::Available, \App\Enums\ItemStatus::Low], true))
-                                    <flux:button size="sm" variant="primary" :href="route('board.reserve', [$shop, $item])">
+                                    <a href="{{ route('board.reserve', [$shop, $item]) }}" class="rounded-lg bg-orange-600 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-700">
                                         {{ __('Reserve') }}
-                                    </flux:button>
+                                    </a>
                                 @endif
                                 @if ($shop->whatsappUrl($item->name))
-                                    <a href="{{ $shop->whatsappUrl($item->name) }}" target="_blank" rel="noopener" class="text-sm font-medium text-green-700 underline dark:text-green-400">
+                                    <a href="{{ $shop->whatsappUrl($item->name) }}" target="_blank" rel="noopener" class="text-sm font-medium text-green-700 underline">
                                         {{ __('Ask on WhatsApp') }}
                                     </a>
                                 @endif
@@ -195,10 +189,10 @@ new #[Layout('layouts::public')] class extends Component {
     @endif
 
     {{-- Full menu --}}
-    <section class="px-4 pt-6">
-        <flux:heading size="lg">{{ __('Menu') }}</flux:heading>
+    <section class="px-4 pt-8 sm:px-0">
+        <h2 class="text-xl font-semibold">{{ __('Menu') }}</h2>
 
-        <div class="mt-3 divide-y divide-zinc-200 overflow-hidden rounded-2xl bg-white dark:divide-zinc-700 dark:bg-zinc-800">
+        <div class="mt-4 divide-y divide-stone-100 overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-stone-200">
             @forelse ($this->items as $item)
                 @php
                     $row = $this->statuses->get($item->id);
@@ -206,12 +200,12 @@ new #[Layout('layouts::public')] class extends Component {
                     $soldOut = $row?->status === \App\Enums\ItemStatus::SoldOut;
                 @endphp
 
-                <div wire:key="menu-{{ $item->id }}" class="flex items-center gap-3 p-3">
-                    <div @class(['flex min-w-0 flex-1 items-center gap-3', 'opacity-50' => $soldOut])>
+                <div wire:key="menu-{{ $item->id }}" class="flex items-center gap-3 p-3 sm:px-5 sm:py-4">
+                    <div @class(['flex min-w-0 flex-1 items-center gap-3 sm:gap-4', 'opacity-50' => $soldOut])>
                         @if ($item->photoUrl())
-                            <img src="{{ $item->photoUrl() }}" alt="" loading="lazy" class="size-14 shrink-0 rounded-xl object-cover">
+                            <img src="{{ $item->photoUrl() }}" alt="" loading="lazy" class="size-14 shrink-0 rounded-xl object-cover sm:size-16">
                         @else
-                            <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-400 dark:bg-zinc-900">
+                            <div class="flex size-14 shrink-0 items-center justify-center rounded-xl bg-orange-50 text-orange-300 sm:size-16">
                                 <flux:icon.photo class="size-5" />
                             </div>
                         @endif
@@ -226,12 +220,12 @@ new #[Layout('layouts::public')] class extends Component {
                             <div class="mt-1 flex flex-wrap items-center gap-2">
                                 <x-status-pill :status="$row?->status" />
                                 @if (in_array($row?->status, [\App\Enums\ItemStatus::Available, \App\Enums\ItemStatus::Low], true))
-                                    <a href="{{ route('board.reserve', [$shop, $item]) }}" class="text-xs font-semibold underline underline-offset-2">
+                                    <a href="{{ route('board.reserve', [$shop, $item]) }}" class="text-xs font-semibold text-orange-700 underline underline-offset-2">
                                         {{ __('Reserve') }}
                                     </a>
                                 @endif
                                 @if ($shop->whatsappUrl($item->name) && ! $soldOut)
-                                    <a href="{{ $shop->whatsappUrl($item->name) }}" target="_blank" rel="noopener" class="text-xs font-medium text-green-700 underline dark:text-green-400">
+                                    <a href="{{ $shop->whatsappUrl($item->name) }}" target="_blank" rel="noopener" class="text-xs font-medium text-green-700 underline">
                                         {{ __('Ask') }}
                                     </a>
                                 @endif
@@ -246,21 +240,21 @@ new #[Layout('layouts::public')] class extends Component {
                     <x-fav-heart :item="$item" />
                 </div>
             @empty
-                <flux:text class="p-4">{{ __('This shop has not added its menu yet.') }}</flux:text>
+                <p class="p-6 text-center text-stone-500">{{ __('This shop has not added its menu yet.') }}</p>
             @endforelse
         </div>
     </section>
 
     {{-- Sticky contact bar --}}
-    <nav class="fixed inset-x-0 bottom-0 border-t border-zinc-200 bg-white/95 p-3 backdrop-blur dark:border-zinc-700 dark:bg-zinc-900/95">
-        <div class="mx-auto flex max-w-xl gap-3">
-            <a href="tel:{{ $shop->phone }}" class="flex flex-1 items-center justify-center gap-2 rounded-xl bg-zinc-900 py-3 font-medium text-white dark:bg-white dark:text-zinc-900">
+    <nav class="fixed inset-x-0 bottom-0 z-20 border-t border-stone-200 bg-white/95 p-3 backdrop-blur">
+        <div class="mx-auto flex max-w-4xl gap-3 sm:px-6">
+            <a href="tel:{{ $shop->phone }}" class="flex flex-1 items-center justify-center gap-2 rounded-xl bg-orange-600 py-3 font-semibold text-white hover:bg-orange-700">
                 <flux:icon.phone class="size-5" />
                 {{ __('Call') }}
             </a>
 
             @if ($shop->whatsappUrl())
-                <a href="{{ $shop->whatsappUrl() }}" target="_blank" rel="noopener" class="flex flex-1 items-center justify-center gap-2 rounded-xl bg-green-600 py-3 font-medium text-white">
+                <a href="{{ $shop->whatsappUrl() }}" target="_blank" rel="noopener" class="flex flex-1 items-center justify-center gap-2 rounded-xl bg-green-600 py-3 font-semibold text-white hover:bg-green-700">
                     <flux:icon.chat-bubble-left-right class="size-5" />
                     {{ __('WhatsApp') }}
                 </a>
