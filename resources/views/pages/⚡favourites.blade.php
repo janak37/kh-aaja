@@ -118,86 +118,107 @@ new #[Layout('layouts::public')] #[Title('Favourites')] class extends Component 
     }
 }; ?>
 
-<div class="mx-auto min-h-screen w-full max-w-3xl space-y-8 px-4 pb-16 pt-5" x-data x-init="$wire.load($store.fav.shops, $store.fav.dishKeys())">
-    <header class="flex items-center justify-between gap-3">
-        <a href="{{ route('home') }}" class="text-lg font-bold">
-            Kh-aaja <span class="font-normal text-zinc-500">· खाजा आज</span>
-        </a>
-        <x-language-switch />
-    </header>
-    <div>
-        <h1 class="text-2xl font-bold">{{ __('Favourites') }}</h1>
-        <p class="mt-1 text-sm text-zinc-500">{{ __('Saved on this phone only. No account needed.') }}</p>
+<div class="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 sm:py-12" x-data x-init="$wire.load($store.fav.shops, $store.fav.dishKeys())">
+    <a href="{{ route('home') }}" class="text-sm font-medium text-stone-500 hover:text-orange-700">← {{ __('All shops') }}</a>
+
+    <div class="mt-4 flex items-center gap-3">
+        <span class="flex size-11 items-center justify-center rounded-xl bg-orange-100 text-orange-600">
+            <flux:icon.heart variant="solid" class="size-6" />
+        </span>
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight">{{ __('Favourites') }}</h1>
+            <p class="text-sm text-stone-500">{{ __('Saved on this phone only. No account needed.') }}</p>
+        </div>
     </div>
 
-    @if (! $loaded)
-        <p class="text-sm text-zinc-500">{{ __('Loading…') }}</p>
-    @elseif ($shopIds === [] && $dishKeys === [])
-        <div class="rounded-xl border border-dashed border-zinc-300 p-8 text-center dark:border-zinc-600">
-            <flux:icon.heart class="mx-auto size-8 text-zinc-400" />
-            <p class="mt-3 font-semibold">{{ __('Nothing saved yet.') }}</p>
-            <p class="mt-1 text-sm text-zinc-500">{{ __('Tap the ♥ on a shop or a dish to keep it here.') }}</p>
-            <a href="{{ route('home') }}" class="mt-4 inline-block text-sm font-semibold underline">{{ __('Browse shops') }}</a>
-        </div>
-    @else
-        @if ($dishKeys !== [])
-            <section class="space-y-3">
-                <h2 class="text-lg font-semibold">{{ __('Your dishes, available today') }}</h2>
+    <div class="mt-8 space-y-10">
+        @if (! $loaded)
+            <p class="text-sm text-stone-500">{{ __('Loading…') }}</p>
+        @elseif ($shopIds === [] && $dishKeys === [])
+            <div class="rounded-2xl border border-dashed border-stone-300 bg-white p-10 text-center">
+                <flux:icon.heart class="mx-auto size-10 text-orange-300" />
+                <p class="mt-3 text-lg font-semibold">{{ __('Nothing saved yet.') }}</p>
+                <p class="mt-1 text-stone-500">{{ __('Tap the ♥ on a shop or a dish to keep it here.') }}</p>
+                <a href="{{ route('home') }}" class="mt-5 inline-block rounded-lg bg-orange-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-orange-700">
+                    {{ __('Browse shops') }}
+                </a>
+            </div>
+        @else
+            {{-- Saved dishes: where to get each one today --}}
+            @if ($dishKeys !== [])
+                <section>
+                    <h2 class="text-xl font-semibold">{{ __('Your dishes, available today') }}</h2>
 
-                @foreach ($this->dishes->groupBy('dish_key') as $key => $group)
-                    <div wire:key="dish-{{ $key }}" class="overflow-hidden rounded-xl border border-zinc-200 dark:border-zinc-700">
-                        <div class="flex items-center justify-between gap-3 bg-zinc-50 px-3 py-2 dark:bg-zinc-800">
-                            <div>
-                                <span class="font-semibold">{{ $group->first()->name }}</span>
-                                <span class="text-sm text-zinc-500">· {{ trans_choice(':count shop today|:count shops today', $group->count()) }}</span>
+                    <div class="mt-4 grid gap-4 md:grid-cols-2">
+                        @foreach ($this->dishes->groupBy('dish_key') as $key => $group)
+                            <div wire:key="dish-{{ $key }}" class="overflow-hidden rounded-2xl bg-white shadow-sm ring-1 ring-stone-200">
+                                <div class="flex items-center justify-between gap-3 border-b border-orange-100 bg-orange-50 px-4 py-3">
+                                    <div>
+                                        <span class="font-semibold">{{ $group->first()->name }}</span>
+                                        <span class="text-sm text-stone-500">· {{ trans_choice(':count shop today|:count shops today', $group->count()) }}</span>
+                                    </div>
+                                    <x-fav-heart :item="$group->first()" />
+                                </div>
+
+                                <div class="divide-y divide-stone-100">
+                                    @foreach ($group as $item)
+                                        @php $price = $item->dailyStatuses->first()?->price ?? $item->default_price; @endphp
+                                        <a href="{{ route('board.show', $item->shop) }}" wire:key="dish-item-{{ $item->id }}" class="flex items-center gap-3 px-4 py-3 hover:bg-stone-50">
+                                            <span class="min-w-0 flex-1 truncate text-sm">
+                                                {{ $item->shop->name }} · <span class="text-stone-500">{{ $item->shop->area }}</span>
+                                            </span>
+                                            @if ($loop->first && $group->count() > 1)
+                                                <flux:badge color="green" size="sm">{{ __('Cheapest') }}</flux:badge>
+                                            @endif
+                                            @if ($price)
+                                                <span class="shrink-0 text-sm font-semibold text-orange-700">Rs {{ number_format($price) }}</span>
+                                            @endif
+                                        </a>
+                                    @endforeach
+                                </div>
                             </div>
-                            <x-fav-heart :item="$group->first()" />
-                        </div>
-
-                        <div class="divide-y divide-zinc-200 dark:divide-zinc-700">
-                            @foreach ($group as $item)
-                                @php $price = $item->dailyStatuses->first()?->price ?? $item->default_price; @endphp
-                                <a href="{{ route('board.show', $item->shop) }}" wire:key="dish-item-{{ $item->id }}" class="flex items-center gap-3 px-3 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800">
-                                    <span class="min-w-0 flex-1 truncate text-sm">{{ $item->shop->name }} · <span class="text-zinc-500">{{ $item->shop->area }}</span></span>
-                                    @if ($loop->first && $group->count() > 1)
-                                        <flux:badge color="green" size="sm">{{ __('Cheapest') }}</flux:badge>
-                                    @endif
-                                    @if ($price)
-                                        <span class="shrink-0 text-sm font-semibold">Rs {{ number_format($price) }}</span>
-                                    @endif
-                                </a>
-                            @endforeach
-                        </div>
+                        @endforeach
                     </div>
-                @endforeach
 
-                @if ($this->missingDishes > 0)
-                    <p class="text-sm text-zinc-500">
-                        {{ trans_choice(':count saved dish is not on any board today.|:count saved dishes are not on any board today.', $this->missingDishes) }}
-                    </p>
-                @endif
-            </section>
-        @endif
+                    @if ($this->missingDishes > 0)
+                        <p class="mt-3 text-sm text-stone-500">
+                            {{ trans_choice(':count saved dish is not on any board today.|:count saved dishes are not on any board today.', $this->missingDishes) }}
+                        </p>
+                    @endif
+                </section>
+            @endif
 
-        @if ($shopIds !== [])
-            <section class="space-y-3">
-                <h2 class="text-lg font-semibold">{{ __('Your shops') }}</h2>
+            {{-- Saved shops --}}
+            @if ($shopIds !== [])
+                <section>
+                    <h2 class="text-xl font-semibold">{{ __('Your shops') }}</h2>
 
-                @foreach ($this->shops as $shop)
-                    <div wire:key="shop-{{ $shop->id }}" class="flex items-center gap-3 rounded-xl border border-zinc-200 p-3 dark:border-zinc-700">
-                        <a href="{{ route('board.show', $shop) }}" class="min-w-0 flex-1">
-                            <div class="font-semibold">{{ $shop->name }}</div>
-                            <div class="truncate text-sm text-zinc-500">{{ $shop->area }} · {{ $shop->categoryLabel() }}</div>
-                        </a>
-                        @if ($shop->updated_today)
-                            <span class="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-500/15 dark:text-green-300">{{ __('Board updated today') }}</span>
-                        @else
-                            <span class="rounded-full bg-zinc-200 px-2.5 py-0.5 text-xs font-medium text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300">{{ __('Not updated today') }}</span>
-                        @endif
-                        <x-fav-heart :shop="$shop" />
+                    <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                        @foreach ($this->shops as $shop)
+                            <div wire:key="shop-{{ $shop->id }}" class="flex flex-col rounded-2xl bg-white p-5 shadow-sm ring-1 ring-stone-200 transition hover:shadow-md">
+                                <div class="flex items-start justify-between gap-3">
+                                    <a href="{{ route('board.show', $shop) }}" class="min-w-0">
+                                        <div class="truncate text-lg font-semibold">{{ $shop->name }}</div>
+                                        <div class="truncate text-sm text-stone-500">{{ $shop->categoryLabel() }} · {{ $shop->area }}</div>
+                                    </a>
+                                    <x-fav-heart :shop="$shop" />
+                                </div>
+
+                                <div class="mt-3 flex items-center justify-between gap-3">
+                                    @if ($shop->updated_today)
+                                        <flux:badge color="green" size="sm">{{ __('Board updated today') }}</flux:badge>
+                                    @else
+                                        <flux:badge color="zinc" size="sm">{{ __('Not updated today') }}</flux:badge>
+                                    @endif
+                                    <a href="{{ route('board.show', $shop) }}" class="text-sm font-semibold text-orange-700 hover:text-orange-800">
+                                        {{ __('View board') }} →
+                                    </a>
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
-                @endforeach
-            </section>
+                </section>
+            @endif
         @endif
-    @endif
+    </div>
 </div>

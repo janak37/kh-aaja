@@ -114,66 +114,51 @@ new #[Layout('layouts::public')] #[Title('Kh-aaja')] class extends Component {
     }
 }; ?>
 
-<div wire:poll.30s.visible class="mx-auto min-h-screen w-full max-w-3xl pb-16">
-    {{-- Top bar --}}
-    <header class="flex items-center justify-between gap-3 px-4 pt-5">
-        <a href="{{ route('home') }}" class="text-lg font-bold">
-            Kh-aaja <span class="font-normal text-zinc-500">· खाजा आज</span>
-        </a>
+<div wire:poll.30s.visible class="pb-12">
+    {{-- Hero: question, search and filters --}}
+    <section class="border-b border-orange-100 bg-gradient-to-b from-orange-50 to-stone-50">
+        <div class="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12">
+            <h1 class="max-w-2xl text-3xl font-bold tracking-tight sm:text-4xl">{{ __('What can you eat nearby right now?') }}</h1>
+            <p class="mt-2 max-w-2xl text-stone-600">{{ __('Live boards from local khaja shops, updated today.') }}</p>
 
-        <div class="flex items-center gap-2">
-            <flux:button size="sm" variant="ghost" icon="heart" :href="route('favourites')" :aria-label="__('Favourites')" :tooltip="__('Favourites')" />
-            <x-language-switch />
-            @auth
-                <flux:button size="sm" :href="route('dashboard')">{{ __('Dashboard') }}</flux:button>
-            @else
-                <flux:button size="sm" variant="ghost" :href="route('login')">{{ __('Log in') }}</flux:button>
-            @endauth
-        </div>
-    </header>
-
-    {{-- Search and filters --}}
-    <section class="px-4 pt-8">
-        <flux:heading size="xl" level="1">{{ __('What can you eat nearby right now?') }}</flux:heading>
-        <flux:text class="mt-1">{{ __('Live boards from local khaja shops, updated today.') }}</flux:text>
-
-        <div class="mt-4 flex flex-col gap-3 sm:flex-row">
-            <div class="flex-1">
-                <flux:input wire:model.live.debounce.300ms="q" icon="magnifying-glass" :placeholder="__('Search momo, thakali, shop…')" />
+            <div class="mt-6 flex flex-col gap-3 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-stone-200 sm:flex-row">
+                <div class="flex-1">
+                    <flux:input wire:model.live.debounce.300ms="q" icon="magnifying-glass" :placeholder="__('Search momo, thakali, shop…')" />
+                </div>
+                <div class="sm:w-56">
+                    <flux:select wire:model.live="area">
+                        <flux:select.option value="">{{ __('All areas') }}</flux:select.option>
+                        @foreach (config('khaaja.areas') as $areaName)
+                            <flux:select.option :value="$areaName">{{ $areaName }}</flux:select.option>
+                        @endforeach
+                    </flux:select>
+                </div>
             </div>
-            <div class="sm:w-48">
-                <flux:select wire:model.live="area">
-                    <flux:select.option value="">{{ __('All areas') }}</flux:select.option>
-                    @foreach (config('khaaja.areas') as $areaName)
-                        <flux:select.option :value="$areaName">{{ $areaName }}</flux:select.option>
-                    @endforeach
-                </flux:select>
+
+            <div class="mt-4 flex gap-2 overflow-x-auto pb-1">
+                <button type="button" wire:click="$set('category', '')" @class([
+                    'shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition',
+                    'border-orange-600 bg-orange-600 text-white' => $category === '',
+                    'border-stone-200 bg-white text-stone-700 hover:border-orange-300' => $category !== '',
+                ])>{{ __('All') }}</button>
+
+                @foreach (config('khaaja.categories') as $value => $label)
+                    <button type="button" wire:click="toggleCategory('{{ $value }}')" @class([
+                        'shrink-0 rounded-full border px-4 py-1.5 text-sm font-medium transition',
+                        'border-orange-600 bg-orange-600 text-white' => $category === $value,
+                        'border-stone-200 bg-white text-stone-700 hover:border-orange-300' => $category !== $value,
+                    ])>{{ __($label) }}</button>
+                @endforeach
             </div>
-        </div>
-
-        <div class="mt-3 flex gap-2 overflow-x-auto pb-1">
-            <button type="button" wire:click="$set('category', '')" @class([
-                'shrink-0 rounded-full border px-3 py-1 text-sm transition',
-                'border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-900' => $category === '',
-                'border-zinc-300 text-zinc-700 dark:border-zinc-600 dark:text-zinc-300' => $category !== '',
-            ])>{{ __('All') }}</button>
-
-            @foreach (config('khaaja.categories') as $value => $label)
-                <button type="button" wire:click="toggleCategory('{{ $value }}')" @class([
-                    'shrink-0 rounded-full border px-3 py-1 text-sm transition',
-                    'border-zinc-900 bg-zinc-900 text-white dark:border-white dark:bg-white dark:text-zinc-900' => $category === $value,
-                    'border-zinc-300 text-zinc-700 dark:border-zinc-600 dark:text-zinc-300' => $category !== $value,
-                ])>{{ __($label) }}</button>
-            @endforeach
         </div>
     </section>
 
-    {{-- Today's specials, all shops --}}
+    {{-- Today's specials: a swipe row on phones, a grid on bigger screens --}}
     @if ($this->specials->isNotEmpty())
-        <section class="pt-8">
-            <flux:heading size="lg" class="px-4">⭐ {{ __("Today's specials") }}</flux:heading>
+        <section class="mx-auto max-w-6xl px-4 pt-10 sm:px-6">
+            <h2 class="text-xl font-semibold">⭐ {{ __("Today's specials") }}</h2>
 
-            <div class="mt-3 flex snap-x gap-3 overflow-x-auto px-4 pb-2">
+            <div class="-mx-4 mt-4 flex snap-x gap-4 overflow-x-auto px-4 pb-2 sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 lg:grid-cols-4">
                 @foreach ($this->specials as $special)
                     @php
                         $item = $special->item;
@@ -181,40 +166,43 @@ new #[Layout('layouts::public')] #[Title('Kh-aaja')] class extends Component {
                         $price = $special->price ?? $item->default_price;
                     @endphp
 
-                    <div wire:key="special-{{ $special->id }}" class="relative w-56 shrink-0 snap-start overflow-hidden rounded-2xl border border-amber-300 bg-white dark:border-amber-500/40 dark:bg-zinc-800">
+                    <div wire:key="special-{{ $special->id }}" class="relative w-56 shrink-0 snap-start overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition hover:shadow-md sm:w-auto">
                         <a href="{{ route('board.show', $shop) }}" class="block">
                             @if ($item->photoUrl())
-                                <img src="{{ $item->photoUrl() }}" alt="{{ $item->name }}" loading="lazy" class="h-32 w-full object-cover">
+                                <img src="{{ $item->photoUrl() }}" alt="{{ $item->name }}" loading="lazy" class="h-36 w-full object-cover">
                             @else
-                                <div class="flex h-32 items-center justify-center bg-zinc-100 text-zinc-400 dark:bg-zinc-900">
-                                    <flux:icon.photo class="size-8" />
+                                <div class="flex h-24 items-center justify-center bg-gradient-to-br from-orange-50 to-amber-100 text-4xl">
+                                    🍽️
                                 </div>
                             @endif
 
-                            <div class="space-y-1 p-3">
+                            <div class="space-y-1.5 p-4">
                                 <div class="flex items-start justify-between gap-2">
                                     <span class="font-semibold leading-tight">{{ $item->name }}</span>
                                     @if ($price)
-                                        <span class="shrink-0 text-sm font-semibold">Rs {{ number_format($price) }}</span>
+                                        <span class="shrink-0 text-sm font-semibold text-orange-700">Rs {{ number_format($price) }}</span>
                                     @endif
                                 </div>
-                                <div class="truncate text-xs text-zinc-500">{{ $shop->name }} · {{ $shop->area }}</div>
+                                <div class="truncate text-xs text-stone-500">{{ $shop->name }} · {{ $shop->area }}</div>
                                 <x-status-pill :status="$special->status" />
                             </div>
                         </a>
 
-                        <x-fav-heart :item="$item" class="absolute right-2 top-2 bg-white/90 shadow-sm dark:bg-zinc-900/80" />
+                        <x-fav-heart :item="$item" class="absolute right-2 top-2 bg-white/90 shadow-sm" />
                     </div>
                 @endforeach
             </div>
         </section>
     @endif
 
-    {{-- Shops --}}
-    <section class="px-4 pt-8">
-        <flux:heading size="lg">{{ __('Shops') }}</flux:heading>
+    {{-- Shops: 1 column on phones, 2 on tablets, 3 on laptops --}}
+    <section class="mx-auto max-w-6xl px-4 pt-10 sm:px-6">
+        <div class="flex items-end justify-between gap-3">
+            <h2 class="text-xl font-semibold">{{ __('Shops') }}</h2>
+            <span class="text-sm text-stone-500">{{ trans_choice(':count shop|:count shops', $this->shops->count()) }}</span>
+        </div>
 
-        <div class="mt-3 space-y-3">
+        <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             @forelse ($this->shops as $shop)
                 @php
                     $ready = $shop->items->filter(fn (Item $item) => in_array(
@@ -225,23 +213,24 @@ new #[Layout('layouts::public')] #[Title('Kh-aaja')] class extends Component {
                 @endphp
 
                 <div wire:key="shop-{{ $shop->id }}" @class([
-                    'flex gap-3 rounded-2xl border border-zinc-200 bg-white p-4 transition hover:border-zinc-400 dark:border-zinc-700 dark:bg-zinc-800',
-                    'opacity-60' => ! $shop->updated_today,
+                    'flex flex-col rounded-2xl border border-stone-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md',
+                    'opacity-75' => ! $shop->updated_today,
                 ])>
-                    <a href="{{ route('board.show', $shop) }}" class="min-w-0 flex-1">
-                        <div class="truncate font-semibold">{{ $shop->name }}</div>
-                        <div class="text-sm text-zinc-500">{{ $shop->categoryLabel() }} · {{ $shop->area }}</div>
+                    <div class="flex items-start justify-between gap-3">
+                        <a href="{{ route('board.show', $shop) }}" class="min-w-0">
+                            <h3 class="truncate text-lg font-semibold">{{ $shop->name }}</h3>
+                            <p class="text-sm text-stone-500">{{ $shop->categoryLabel() }} · {{ $shop->area }}</p>
+                        </a>
 
-                        @if ($ready->isNotEmpty())
-                            <div class="mt-3 flex flex-wrap gap-1.5">
-                                @foreach ($ready->take(4) as $item)
-                                    <span class="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs dark:bg-zinc-700">{{ $item->name }}</span>
-                                @endforeach
-                            </div>
-                        @endif
-                    </a>
+                        <div class="flex shrink-0 items-center text-sm text-stone-500">
+                            @if ($shop->favourites_count > 0)
+                                <span>{{ $shop->favourites_count }}</span>
+                            @endif
+                            <x-fav-heart :shop="$shop" />
+                        </div>
+                    </div>
 
-                    <div class="flex shrink-0 flex-col items-end justify-between gap-2">
+                    <div class="mt-3">
                         @if ($shop->updated_today)
                             <flux:badge color="green" size="sm">
                                 {{ trans_choice(':count dish ready|:count dishes ready', $ready->count()) }}
@@ -249,18 +238,23 @@ new #[Layout('layouts::public')] #[Title('Kh-aaja')] class extends Component {
                         @else
                             <flux:badge color="zinc" size="sm">{{ __('Not updated today') }}</flux:badge>
                         @endif
-
-                        <div class="flex items-center text-sm text-zinc-500">
-                            @if ($shop->favourites_count > 0)
-                                <span>{{ $shop->favourites_count }}</span>
-                            @endif
-                            <x-fav-heart :shop="$shop" />
-                        </div>
                     </div>
+
+                    @if ($ready->isNotEmpty())
+                        <div class="mt-3 flex flex-wrap gap-1.5">
+                            @foreach ($ready->take(4) as $item)
+                                <span class="rounded-full bg-orange-50 px-2.5 py-0.5 text-xs text-orange-800">{{ $item->name }}</span>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <a href="{{ route('board.show', $shop) }}" class="mt-auto pt-4 text-sm font-semibold text-orange-700 hover:text-orange-800">
+                        {{ __('View board') }} →
+                    </a>
                 </div>
             @empty
-                <div class="rounded-2xl border border-dashed border-zinc-300 p-6 text-center dark:border-zinc-600">
-                    <flux:text>{{ __('No shops match your search.') }}</flux:text>
+                <div class="rounded-2xl border border-dashed border-stone-300 bg-white p-8 text-center sm:col-span-2 lg:col-span-3">
+                    <p class="text-stone-600">{{ __('No shops match your search.') }}</p>
                     <flux:button size="sm" class="mt-3" wire:click="clearFilters">{{ __('Clear filters') }}</flux:button>
                 </div>
             @endforelse
@@ -268,13 +262,15 @@ new #[Layout('layouts::public')] #[Title('Kh-aaja')] class extends Component {
     </section>
 
     {{-- For shop owners --}}
-    <section class="px-4 pt-10">
-        <div class="rounded-2xl bg-zinc-900 p-6 text-white dark:bg-zinc-800">
-            <div class="text-lg font-semibold">{{ __('Own a khaja shop?') }}</div>
-            <p class="mt-1 text-sm text-zinc-300">
-                {{ __('Put your menu online free. Update it in 15 seconds a day and get found by hungry people nearby.') }}
-            </p>
-            <a href="{{ route('register') }}" class="mt-4 inline-block rounded-lg bg-white px-4 py-2 text-sm font-semibold text-zinc-900">
+    <section class="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
+        <div class="flex flex-col items-start justify-between gap-4 rounded-2xl bg-orange-600 p-6 text-white sm:flex-row sm:items-center sm:p-8">
+            <div>
+                <div class="text-xl font-semibold">{{ __('Own a khaja shop?') }}</div>
+                <p class="mt-1 max-w-xl text-orange-100">
+                    {{ __('Put your menu online free. Update it in 15 seconds a day and get found by hungry people nearby.') }}
+                </p>
+            </div>
+            <a href="{{ route('register') }}" class="shrink-0 rounded-lg bg-white px-5 py-2.5 text-sm font-semibold text-orange-700 hover:bg-orange-50">
                 {{ __('List your shop free') }}
             </a>
         </div>
