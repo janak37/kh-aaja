@@ -161,7 +161,7 @@
     "How many plates?": "कति प्लेट?",
     "Note for the shop (optional)": "पसलका लागि नोट (ऐच्छिक)",
     "e.g. I will pick up at 1 pm": "जस्तै: म १ बजे लिन आउँछु",
-    "Your name and number go only to :shop, and are deleted after 30 days.": "तपाईंको नाम र नम्बर :shop लाई मात्र जान्छ, र ३० दिनपछि मेटिन्छ।",
+    "Your name and number go only to :shop, and are deleted after :days days.": "तपाईंको नाम र नम्बर :shop लाई मात्र जान्छ, र :days दिनपछि मेटाइन्छ।",
     "Send reservation": "बुकिङ पठाउनुहोस्",
     "The shop will confirm or decline. You will see the answer on the next page.": "पसलले स्वीकार वा अस्वीकार गर्नेछ। जवाफ अर्को पेजमा देखिनेछ।",
     "Too many reservations. Please try again in a few minutes.": "धेरै बुकिङ भयो। केही मिनेटपछि फेरि प्रयास गर्नुहोस्।",
@@ -233,5 +233,6 @@
     "Privacy": "गोपनीयता",
     "No ads. No tracking. Your favourites stay on your phone.": "विज्ञापन छैन। ट्र्याकिङ छैन। तपाईंका मनपर्ने तपाईंकै फोनमा रहन्छन्।",
     ":count shop|:count shops": ":count पसल|:count पसलहरू",
-    "View board": "बोर्ड हेर्नुहोस्"
+    "View board": "बोर्ड हेर्नुहोस्",
+    "How we handle your details": "हामी तपाईंको विवरण कसरी राख्छौं"
 }

@@ -165,3 +165,48 @@ test('a dish heart tapped on the board is counted', function () {
 
     expect($item->fresh()->favourites_count)->toBe(1);
 });
+// Reserve form
+
+test('the reserve form says how long details are kept and links to privacy', function () {
+    $item = Item::factory()->create();
+    DailyStatus::factory()->for($item)->create(['board_date' => $this->today]);
+
+    $this->get(route('board.reserve', [$item->shop, $item]))
+        ->assertOk()
+        ->assertSee('deleted after 30 days')
+        ->assertSee(route('privacy'));
+});
+// Homepage: "Your favourites" strip and "Show more"
+
+test('the homepage shows a "Your favourites" strip for saved shops', function () {
+    $shop = Shop::factory()->create(['name' => 'Saved Momo Ghar']);
+
+    Livewire::test('pages::home')
+        ->call('loadFavourites', [$shop->id, 'junk', -1, $shop->id])
+        ->assertSet('favouriteIds', [$shop->id])
+        ->assertSee('Your favourites');
+});
+
+test('the homepage has no favourites strip when nothing is saved', function () {
+    Shop::factory()->create();
+
+    Livewire::test('pages::home')->assertDontSee('Your favourites');
+});
+
+test('the homepage lists 12 shops and loads more on request', function () {
+    Shop::factory()->count(15)->create();
+
+    $home = Livewire::test('pages::home')->assertSee('Show more shops');
+    expect($home->instance()->shops)->toHaveCount(12);
+
+    $home->call('showMore')->assertDontSee('Show more shops');
+    expect($home->instance()->shops)->toHaveCount(15);
+});
+
+test('a new search starts again from the first 12 shops', function () {
+    Livewire::test('pages::home')
+        ->call('showMore')
+        ->assertSet('showing', 24)
+        ->set('q', 'momo')
+        ->assertSet('showing', 12);
+});
