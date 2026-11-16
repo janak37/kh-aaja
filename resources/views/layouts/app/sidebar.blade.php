@@ -21,15 +21,7 @@
                             {{ __('Today') }}
                         </flux:sidebar.item>
 
-                        @php
-                            $waiting = auth()->user()->shop?->reservations()
-                                ->where('status', \App\Enums\ReservationStatus::Pending)
-                                ->where('board_date', now('Asia/Kathmandu')->toDateString())
-                                ->count() ?? 0;
-                        @endphp
-                        <flux:sidebar.item icon="inbox" :href="route('shop.reservations')" :current="request()->routeIs('shop.reservations')" :badge="$waiting > 0 ? $waiting : null" wire:navigate>
-                            {{ __('Reservations') }}
-                        </flux:sidebar.item>
+                        <livewire:reservations-badge />
 
                         <flux:sidebar.item icon="building-storefront" :href="route('shop.edit')" :current="request()->routeIs('shop.edit')" wire:navigate>
                             {{ __('My shop') }}

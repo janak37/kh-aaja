@@ -154,3 +154,12 @@ test('the dashboard shows how many reservations are waiting', function () {
         ->assertSee('2 waiting')
         ->assertSee(route('shop.reservations'));
 });
+test('the sidebar counter counts only today\'s waiting reservations', function () {
+    newReservation($this->shop, $this->item);
+    newReservation($this->shop, $this->item);
+    Reservation::factory()->for($this->shop)->for($this->item)->confirmed()->create();
+
+    $badge = Livewire::actingAs($this->owner)->test('reservations-badge');
+
+    expect($badge->instance()->waiting)->toBe(2);
+});

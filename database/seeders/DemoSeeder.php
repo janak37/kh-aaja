@@ -17,6 +17,10 @@ use Illuminate\Support\Facades\Artisan;
 /**
  * Local-only demo data: 1 admin, 6 shops with menus, today's boards,
  * streak history and a few reservations. Every login uses "password".
+ *
+ * Fixed logins:
+ * - admin@example.com (admin)
+ * - owner@example.com (owner of the best demo shop)
  */
 class DemoSeeder extends Seeder
 {
@@ -71,6 +75,12 @@ class DemoSeeder extends Seeder
                 ->count(2)
                 ->create(['board_date' => $today->toDateString()]);
         });
+
+        // A fixed login for demos: owner@example.com / password.
+        // It's the first shop: updated today, 14-day streak, Reliable board.
+        Shop::query()->oldest('id')->firstOrFail()->owner
+            ->forceFill(['name' => 'Demo Owner', 'email' => 'owner@example.com'])
+            ->save();
 
         // Give every demo shop its Kh-aaja score, so the homepage ranking works straight away.
         Artisan::call('shops:score');
