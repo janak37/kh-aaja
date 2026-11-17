@@ -5,7 +5,7 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta name="theme-color" content="#ea580c" />
 
-        <title>{{ isset($title) && $title !== config('app.name') ? __($title).' · Kh-aaja' : 'Kh-aaja · खाजा आज' }}</title>
+        <title>{{ isset($title) && $title !== 'Kh-aaja' ? __($title).' · '.__('Kh-aaja') : __('Kh-aaja') }}</title>
 
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -19,10 +19,10 @@
         <header class="sticky top-0 z-30 border-b border-stone-200 bg-white/90 backdrop-blur">
             <div class="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
                 <a href="{{ route('home') }}" class="flex items-center gap-2.5">
-                    <span class="flex size-9 items-center justify-center rounded-xl bg-orange-600 text-lg font-bold text-white">ख</span>
+                    <x-logo-mark class="size-10" />
                     <span class="leading-tight">
-                        <span class="block font-bold">Kh-aaja</span>
-                        <span class="block text-xs text-stone-500">खाजा आज</span>
+                        <span class="block font-bold">{{ __('Kh-aaja') }}</span>
+                        <span class="block text-xs text-stone-500">{{ app()->isLocale('ne') ? 'Kh-aaja' : 'खाजा आज' }}</span>
                     </span>
                 </a>
 
@@ -50,7 +50,7 @@
         {{-- Footer --}}
         <footer class="border-t border-stone-200 bg-white">
             <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-2 px-4 pb-24 pt-6 text-xs text-stone-500 sm:flex-row sm:px-6">
-                <span>© {{ date('Y') }} Kh-aaja · खाजा आज</span>
+                <span>© {{ date('Y') }} {{ __('Kh-aaja') }}</span>
                 <span>
                     <a href="{{ route('privacy') }}" class="underline underline-offset-2 hover:text-stone-900">{{ __('Privacy') }}</a>
                     · {{ __('No ads. No tracking. Your favourites stay on your phone.') }}
