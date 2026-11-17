@@ -4,6 +4,7 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-stone-50">
+        <x-splash />
         <flux:sidebar sticky collapsible="mobile" class="border-e border-stone-200 bg-white">
             <flux:sidebar.header>
                 <x-app-logo :sidebar="true" href="{{ route('dashboard') }}" wire:navigate />
