@@ -4,6 +4,7 @@
         @include('partials.head')
     </head>
     <body class="min-h-screen bg-gradient-to-b from-orange-50 to-stone-50 text-stone-900 antialiased">
+        <x-splash />
         <div class="flex min-h-svh flex-col">
             {{-- Small top bar: back to the site, language --}}
             <div class="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6">

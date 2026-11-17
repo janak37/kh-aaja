@@ -15,6 +15,7 @@
         {{-- No @fluxAppearance here: customer pages are always light. --}}
     </head>
     <body class="flex min-h-screen flex-col bg-stone-50 text-stone-900 antialiased">
+         <x-splash />
         {{-- Top bar --}}
         <header class="sticky top-0 z-30 border-b border-stone-200 bg-white/90 backdrop-blur">
             <div class="mx-auto flex h-16 max-w-6xl items-center justify-between gap-3 px-4 sm:px-6">
