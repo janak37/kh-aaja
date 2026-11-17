@@ -14,7 +14,7 @@
             <div class="flex flex-1 flex-col items-center justify-center px-4 pb-16">
                 <div class="w-full max-w-sm">
                     <a href="{{ route('home') }}" class="mb-6 flex flex-col items-center gap-2" wire:navigate>
-                        <span class="flex size-12 items-center justify-center rounded-2xl bg-orange-600 text-2xl font-bold text-white shadow-sm">ख</span>
+                        <x-logo-mark class="size-14" />
                         <span class="text-center leading-tight">
                             <span class="block text-lg font-bold">Kh-aaja</span>
                             <span class="block text-xs text-stone-500">खाजा आज</span>
