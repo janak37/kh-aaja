@@ -1,0 +1,47 @@
+meta {
+  name: Register
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/register
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+body:json {
+  {
+    "name": "Test Owner",
+    "email": "{{newEmail}}",
+    "password": "a-strong-password-123",
+    "password_confirmation": "a-strong-password-123",
+    "device_name": "Bruno"
+  }
+}
+
+script:pre-request {
+  // A new email every time, so Register can be run again and again.
+  bru.setVar("newEmail", "owner" + Date.now() + "@example.com");
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setEnvVar("token", res.body.token);
+  }
+}
+
+tests {
+  test("creates the account (201)", function () {
+    expect(res.status).to.equal(201);
+  });
+
+  test("returns a token and a shop owner", function () {
+    expect(res.body.token).to.be.a("string");
+    expect(res.body.user.roles).to.include("shop_owner");
+  });
+}

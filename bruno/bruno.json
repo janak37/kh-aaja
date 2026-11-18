@@ -1,0 +1,6 @@
+{
+  "version": "1",
+  "name": "Kh-aaja API",
+  "type": "collection",
+  "ignore": ["node_modules", ".git"]
+}

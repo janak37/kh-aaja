@@ -1,0 +1,44 @@
+meta {
+  name: Login
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/login
+  body: json
+  auth: none
+}
+
+headers {
+  Accept: application/json
+}
+
+body:json {
+  {
+    "email": "owner@example.com",
+    "password": "password",
+    "device_name": "Bruno"
+  }
+}
+
+script:post-response {
+  if (res.status === 200) {
+    bru.setEnvVar("token", res.body.token);
+  }
+}
+
+tests {
+  test("logs in (200)", function () {
+    expect(res.status).to.equal(200);
+  });
+
+  test("returns a Bearer token", function () {
+    expect(res.body.token_type).to.equal("Bearer");
+    expect(res.body.token).to.be.a("string");
+  });
+
+  test("the user has a shop", function () {
+    expect(res.body.user.shop.name).to.equal("Himalayan Momo Center");
+  });
+}
