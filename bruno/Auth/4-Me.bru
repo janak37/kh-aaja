@@ -1,0 +1,29 @@
+meta {
+  name: Me
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Accept: application/json
+}
+
+tests {
+  test("works with the token (200)", function () {
+    expect(res.status).to.equal(200);
+  });
+
+  test("never shows the password", function () {
+    expect(res.body.data.password).to.be.undefined;
+  });
+}
